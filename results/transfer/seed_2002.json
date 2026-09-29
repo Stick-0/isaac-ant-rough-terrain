@@ -1,0 +1,41 @@
+{
+  "task": "Isaac-Ant-v0",
+  "seed": 2002,
+  "num_envs": 512,
+  "episode_length_s": 16.0,
+  "distance_note": "Position sampled before terminal step; excludes at most one step.",
+  "results": [
+    {
+      "checkpoint": "artifacts/models/flat.pt",
+      "survival_rate": 0.1953125,
+      "failed_episodes": 412,
+      "episode_duration_mean_s": 8.220475196838379,
+      "observed_forward_distance_mean_m": 16.505529403686523,
+      "forward_speed_mean_m_s": 1.8590643405914307,
+      "roll_pitch_angular_speed_rms_rad_s": 1.5875433683395386,
+      "action_delta_rms_per_joint": 0.40555697679519653
+    },
+    {
+      "checkpoint": "artifacts/models/rough.pt",
+      "survival_rate": 0.9140625,
+      "failed_episodes": 44,
+      "episode_duration_mean_s": 15.287793159484863,
+      "observed_forward_distance_mean_m": 68.1470718383789,
+      "forward_speed_mean_m_s": 4.389837265014648,
+      "roll_pitch_angular_speed_rms_rad_s": 2.055251121520996,
+      "action_delta_rms_per_joint": 0.3312492072582245
+    },
+    {
+      "checkpoint": "artifacts/models/stable.pt",
+      "survival_rate": 0.935546875,
+      "failed_episodes": 33,
+      "episode_duration_mean_s": 15.477181434631348,
+      "observed_forward_distance_mean_m": 69.80924987792969,
+      "forward_speed_mean_m_s": 4.451332092285156,
+      "roll_pitch_angular_speed_rms_rad_s": 2.0370678901672363,
+      "action_delta_rms_per_joint": 0.3267689347267151
+    }
+  ],
+  "evaluation_date": "2026-09-29",
+  "observation_note": "All policies use the same 60D ground-relative-height adapter on rough terrain, including the flat-trained policy."
+}

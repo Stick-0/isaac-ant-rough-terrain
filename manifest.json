@@ -1,0 +1,69 @@
+{
+  "base_repository": "https://github.com/cailab-hy/IsaacLab_RS.git",
+  "base_commit": "e83a5d2f11ca1b5f03b690e1978479e620c500e2",
+  "versions": {
+    "python": "3.11.16",
+    "isaaclab_release": "2.3.0",
+    "isaacsim": "5.1.0.0",
+    "torch": "2.7.0+cu128",
+    "rsl-rl-lib": "3.0.1",
+    "isaaclab": "0.47.2",
+    "numpy": "1.26.0",
+    "trimesh": "4.5.1",
+    "matplotlib": "3.10.3"
+  },
+  "gpu": "NVIDIA GeForce RTX 4090 24GB",
+  "source_files": [
+    "source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/__init__.py",
+    "source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/ant_env_cfg.py",
+    "source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/ant_stable_env_cfg.py",
+    "source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/terrain.py",
+    "source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/terrain_mdp.py",
+    "source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/agents/rsl_rl_ppo_cfg.py",
+    "source/isaaclab/isaaclab/terrains/terrain_generator.py",
+    "scripts/reinforcement_learning/rsl_rl/train.py",
+    "scripts/reinforcement_learning/rsl_rl/play.py",
+    "scripts/reinforcement_learning/rsl_rl/evaluate_ant.py"
+  ],
+  "models": {
+    "flat": {
+      "path": "artifacts/models/flat.pt",
+      "sha256": "e0e0d2573346d47b94c2f09b86d93578dc705d2c28a43dead72abbdd551c76c3",
+      "source_run": "ant/2026-09-17_13-16-09_ant_baseline",
+      "source_checkpoint": "model_999.pt"
+    },
+    "rough": {
+      "path": "artifacts/models/rough.pt",
+      "sha256": "b6f44bc7fc4f8e73ccbaab0e063f9bbd3cf0ab1260f89ceef8ea5663ca25a920",
+      "source_run": "ant/2026-09-27_17-02-03",
+      "source_checkpoint": "model_999.pt"
+    },
+    "stable": {
+      "path": "artifacts/models/stable.pt",
+      "sha256": "c15153ba615f5a4226c99df48f89db403ef8a4659e766b9d22a2facef78fb1cf",
+      "source_run": "ant_stable/2026-09-27_17-39-34_stability_finetune",
+      "source_checkpoint": "model_299.pt"
+    },
+    "strong": {
+      "path": "artifacts/models/strong.pt",
+      "sha256": "b3c1149f3b3aea54eea5dd9e55a4a7c663d08121b12821cc6cfaedc38d45350b",
+      "source_run": "ant_stable_validation/2026-09-27_17-49-16_stability_tuned",
+      "source_checkpoint": "model_199.pt"
+    },
+    "strong_100": {
+      "path": "artifacts/models/strong_100.pt",
+      "sha256": "68a833895a1c8202ef5006050b90955a00b38e794daa481b171dd5b5fe70de2c",
+      "source_run": "ant_stable_validation/2026-09-27_17-49-16_stability_tuned",
+      "source_checkpoint": "model_100.pt"
+    }
+  },
+  "training_seed": 42,
+  "training_envs": 4096,
+  "rollout_steps_per_env": 32,
+  "new_evaluation_seeds": [
+    2001,
+    2002
+  ],
+  "evaluation_envs_per_seed": 512,
+  "episode_length_s": 16.0
+}

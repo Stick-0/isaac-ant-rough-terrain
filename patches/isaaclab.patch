@@ -1,0 +1,666 @@
+diff --git a/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/__init__.py b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/__init__.py
+index bca53b5..7652eff 100644
+--- a/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/__init__.py
++++ b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/__init__.py
+@@ -27,3 +27,13 @@ gym.register(
+         "sb3_cfg_entry_point": f"{agents.__name__}:sb3_ppo_cfg.yaml",
+     },
+ )
++
++gym.register(
++    id="Isaac-Ant-Stable-v0",
++    entry_point="isaaclab.envs:ManagerBasedRLEnv",
++    disable_env_checker=True,
++    kwargs={
++        "env_cfg_entry_point": f"{__name__}.ant_stable_env_cfg:AntStableEnvCfg",
++        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AntStablePPORunnerCfg",
++    },
++)
+diff --git a/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/ant_env_cfg.py b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/ant_env_cfg.py
+index ed1f39a..5a8113f 100644
+--- a/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/ant_env_cfg.py
++++ b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/ant_env_cfg.py
+@@ -4,6 +4,7 @@
+ # SPDX-License-Identifier: BSD-3-Clause
+ 
+ import isaaclab.sim as sim_utils
++import isaaclab.terrains as terrain_gen
+ from isaaclab.assets import AssetBaseCfg
+ from isaaclab.envs import ManagerBasedRLEnvCfg
+ from isaaclab.managers import EventTermCfg as EventTerm
+@@ -13,11 +14,15 @@ from isaaclab.managers import RewardTermCfg as RewTerm
+ from isaaclab.managers import SceneEntityCfg
+ from isaaclab.managers import TerminationTermCfg as DoneTerm
+ from isaaclab.scene import InteractiveSceneCfg
++from isaaclab.sensors import RayCasterCfg, patterns
+ from isaaclab.terrains import TerrainImporterCfg
+ from isaaclab.utils import configclass
+ 
+ import isaaclab_tasks.manager_based.classic.humanoid.mdp as mdp
+ 
++from . import terrain_mdp
++from .terrain import AntTerrainImporter
++
+ ##
+ # Pre-defined configs
+ ##
+@@ -30,8 +35,52 @@ class MySceneCfg(InteractiveSceneCfg):
+ 
+     # terrain
+     terrain = TerrainImporterCfg(
++        class_type=AntTerrainImporter,
+         prim_path="/World/ground",
+-        terrain_type="plane",
++        terrain_type="generator",
++        max_init_terrain_level=None,
++        terrain_generator=terrain_gen.TerrainGeneratorCfg(
++            # Random terrain types and difficulties, without a training curriculum.
++            # The training seed controls generation; meshes stay fixed during a run.
++            size=(6.0, 6.0),
++            border_width=0.0,
++            num_rows=120,
++            num_cols=120,
++            curriculum=False,
++            # 720m at 0.1m spacing creates over 100 million triangles.
++            horizontal_scale=0.2,
++            vertical_scale=0.005,
++            # Keep XY vertices on the grid so neighboring tile edges coincide.
++            slope_threshold=None,
++            use_cache=False,
++            sub_terrains={
++                "random_rough": terrain_gen.HfRandomUniformTerrainCfg(
++                    proportion=0.5,
++                    noise_range=(-0.05, 0.05),
++                    noise_step=0.01,
++                    downsampled_scale=0.25,
++                    border_width=0.0,
++                ),
++                "waves": terrain_gen.HfWaveTerrainCfg(
++                    proportion=0.3,
++                    amplitude_range=(0.05, 0.15),
++                    num_waves=4,
++                    border_width=0.0,
++                ),
++                "slope": terrain_gen.HfPyramidSlopedTerrainCfg(
++                    proportion=0.1,
++                    slope_range=(0.05, 0.15),
++                    platform_width=2.0,
++                    border_width=0.0,
++                ),
++                "inverted_slope": terrain_gen.HfInvertedPyramidSlopedTerrainCfg(
++                    proportion=0.1,
++                    slope_range=(0.05, 0.15),
++                    platform_width=2.0,
++                    border_width=0.0,
++                ),
++            },
++        ),
+         collision_group=-1,
+         physics_material=sim_utils.RigidBodyMaterialCfg(
+             friction_combine_mode="average",
+@@ -46,6 +95,17 @@ class MySceneCfg(InteractiveSceneCfg):
+     # robot
+     robot = ANT_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+ 
++    # One downward ray measures the ground beneath the torso, including in valleys.
++    ground_height = RayCasterCfg(
++        prim_path="{ENV_REGEX_NS}/Robot/torso",
++        offset=RayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
++        ray_alignment="yaw",
++        pattern_cfg=patterns.GridPatternCfg(resolution=0.1, size=(0.0, 0.0)),
++        # Query the full surface, not whichever collision chunk is found first.
++        mesh_prim_paths=["/World/ground/terrain/mesh"],
++        debug_vis=False,
++    )
++
+     # lights
+     light = AssetBaseCfg(
+         prim_path="/World/light",
+@@ -73,7 +133,7 @@ class ObservationsCfg:
+     class PolicyCfg(ObsGroup):
+         """Observations for the policy."""
+ 
+-        base_height = ObsTerm(func=mdp.base_pos_z)
++        base_height = ObsTerm(func=terrain_mdp.base_height_above_ground)
+         base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
+         base_ang_vel = ObsTerm(func=mdp.base_ang_vel)
+         base_yaw_roll = ObsTerm(func=mdp.base_yaw_roll)
+@@ -152,7 +212,7 @@ class TerminationsCfg:
+     # (1) Terminate if the episode length is exceeded
+     time_out = DoneTerm(func=mdp.time_out, time_out=True)
+     # (2) Terminate if the robot falls
+-    torso_height = DoneTerm(func=mdp.root_height_below_minimum, params={"minimum_height": 0.31})
++    torso_height = DoneTerm(func=terrain_mdp.root_height_below_ground_minimum, params={"minimum_height": 0.31})
+ 
+ 
+ @configclass
+@@ -160,7 +220,9 @@ class AntEnvCfg(ManagerBasedRLEnvCfg):
+     """Configuration for the MuJoCo-style Ant walking environment."""
+ 
+     # Scene settings
+-    scene: MySceneCfg = MySceneCfg(num_envs=4096, env_spacing=5.0, clone_in_fabric=True)
++    # RayCaster's SensorBase counts parent prims through USD traversal. Keep all
++    # clones visible in USD so its reset buffers cover every environment index.
++    scene: MySceneCfg = MySceneCfg(num_envs=4096, env_spacing=5.0, clone_in_fabric=False)
+     # Basic settings
+     observations: ObservationsCfg = ObservationsCfg()
+     actions: ActionsCfg = ActionsCfg()
+@@ -177,6 +239,7 @@ class AntEnvCfg(ManagerBasedRLEnvCfg):
+         # simulation settings
+         self.sim.dt = 1 / 120.0
+         self.sim.render_interval = self.decimation
++        self.scene.ground_height.update_period = self.decimation * self.sim.dt
+         self.sim.physx.bounce_threshold_velocity = 0.2
+         # default friction material
+         self.sim.physics_material.static_friction = 1.0
+diff --git a/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/ant_stable_env_cfg.py b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/ant_stable_env_cfg.py
+new file mode 100644
+index 0000000..b8151f1
+--- /dev/null
++++ b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/ant_stable_env_cfg.py
+@@ -0,0 +1,28 @@
++# Copyright (c) 2022-2025, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).
++# All rights reserved.
++#
++# SPDX-License-Identifier: BSD-3-Clause
++
++"""Conservative stability fine-tuning with the existing 60-dimensional observation."""
++
++from isaaclab.managers import RewardTermCfg as RewTerm
++from isaaclab.utils import configclass
++
++import isaaclab_tasks.manager_based.classic.humanoid.mdp as mdp
++
++from .ant_env_cfg import AntEnvCfg, RewardsCfg
++
++
++@configclass
++class StableRewardsCfg(RewardsCfg):
++    # Penalize changes in commanded torque, rather than reducing all torque.
++    action_rate = RewTerm(func=mdp.action_rate_l2, weight=-0.01)
++    # Penalize roll/pitch angular velocity without penalizing yaw.
++    body_sway = RewTerm(func=mdp.ang_vel_xy_l2, weight=-0.025)
++
++
++@configclass
++class AntStableEnvCfg(AntEnvCfg):
++    """Keep terrain, observations, actions and termination rules identical to the baseline."""
++
++    rewards: StableRewardsCfg = StableRewardsCfg()
+diff --git a/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/terrain.py b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/terrain.py
+new file mode 100644
+index 0000000..073b4bc
+--- /dev/null
++++ b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/terrain.py
+@@ -0,0 +1,135 @@
++# Copyright (c) 2022-2025, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).
++# All rights reserved.
++#
++# SPDX-License-Identifier: BSD-3-Clause
++
++"""Joined terrain with the original Ant environment's grid of starting positions."""
++
++from __future__ import annotations
++
++import numpy as np
++import torch
++import trimesh
++
++import isaaclab.sim as sim_utils
++from isaaclab.terrains import TerrainImporter
++from isaaclab.utils.warp import convert_to_warp_mesh, raycast_mesh
++
++
++def collision_chunks(mesh: trimesh.Trimesh, max_faces: int = 1_000_000, cell_size: float = 120.0):
++    """Group spatial neighbors before splitting, keeping collider bounds local.
++
++    Slicing the face array alone can join the end of one terrain row to the start
++    of the next, giving a small collider a map-wide bounding box.
++
++    Avoid excessive fragmentation: global collider/environment pairs scale
++    with both collider count and num_envs. A 120m cell at 0.2m resolution has
++    720,000 triangles, keeping the 720m terrain to 36 colliders.
++    """
++    if max_faces <= 0 or cell_size <= 0:
++        raise ValueError("max_faces and cell_size must be positive")
++    if len(mesh.faces) == 0:
++        return
++    origin = mesh.bounds[0, :2]
++    columns = max(1, int(np.ceil(mesh.extents[1] / cell_size)))
++    # Work in batches to avoid materializing all triangle coordinates of a
++    # large terrain at once. The retained arrays are just face IDs and bins.
++    cells = np.empty(len(mesh.faces), dtype=np.int64)
++    for start in range(0, len(mesh.faces), max_faces):
++        stop = min(start + max_faces, len(mesh.faces))
++        centers = mesh.vertices[mesh.faces[start:stop], :2].mean(axis=1)
++        xy = np.floor((centers - origin) / cell_size).astype(np.int64)
++        cells[start:stop] = xy[:, 0] * columns + np.minimum(xy[:, 1], columns - 1)
++    order = np.argsort(cells, kind="stable")
++    sorted_cells = cells[order]
++    boundaries = np.r_[0, np.flatnonzero(np.diff(sorted_cells)) + 1, len(order)]
++    for begin, end in zip(boundaries[:-1], boundaries[1:]):
++        for start in range(begin, end, max_faces):
++            faces = mesh.faces[order[start : min(start + max_faces, end)]]
++            vertex_ids, indices = np.unique(faces.reshape(-1), return_inverse=True)
++            yield trimesh.Trimesh(vertices=mesh.vertices[vertex_ids], faces=indices.reshape(-1, 3), process=False)
++
++
++def define_mesh(stage, prim_path: str, mesh: trimesh.Trimesh):
++    """Author geometry only; the large query mesh must never receive CollisionAPI."""
++    from pxr import UsdGeom, Vt
++
++    prim = UsdGeom.Mesh.Define(stage, prim_path)
++    prim.CreatePointsAttr(Vt.Vec3fArray.FromNumpy(np.asarray(mesh.vertices, dtype=np.float32)))
++    prim.CreateFaceVertexIndicesAttr(Vt.IntArray.FromNumpy(np.asarray(mesh.faces, dtype=np.int32).reshape(-1)))
++    prim.CreateFaceVertexCountsAttr(Vt.IntArray.FromNumpy(np.full(len(mesh.faces), 3, dtype=np.int32)))
++    prim.CreateExtentAttr(Vt.Vec3fArray.FromNumpy(np.asarray(mesh.bounds, dtype=np.float32)))
++    prim.CreateSubdivisionSchemeAttr(UsdGeom.Tokens.none)
++    return prim
++
++
++class AntTerrainImporter(TerrainImporter):
++    """Use grid origins on generated terrain instead of sampling tile centers."""
++
++    def import_mesh(self, name: str, mesh: trimesh.Trimesh):
++        # Height-field tiles share their outermost vertices at z=0. Weld those
++        # vertices into one continuous surface; do not leave separate tile edges.
++        mesh.merge_vertices()
++
++        origins = self._compute_env_origins_grid(self.cfg.num_envs, self.cfg.env_spacing)
++        # Account for terrain underneath the whole starting footprint, rather
++        # than placing every robot at world z=0.5 or at an unrelated tile height.
++        axis = torch.linspace(-0.5, 0.5, 5, device=self.device)
++        x, y = torch.meshgrid(axis, axis, indexing="ij")
++        offsets = torch.stack((x.flatten(), y.flatten(), torch.zeros_like(x.flatten())), dim=-1)
++        starts = origins[:, None, :] + offsets[None, :, :]
++        starts[:, :, 2] = float(mesh.bounds[1, 2]) + 10.0
++        directions = torch.zeros_like(starts)
++        directions[:, :, 2] = -1.0
++        query_mesh = convert_to_warp_mesh(mesh.vertices, mesh.faces, device=self.device)
++        hits = raycast_mesh(starts, directions, query_mesh)[0]
++        if not torch.isfinite(hits).all():
++            raise ValueError("Ant terrain must cover the full env_spacing grid and each robot's starting footprint.")
++        origins[:, 2] = hits[:, :, 2].max(dim=1).values
++        self._grid_origins = origins
++        # The ray caster builds its own mesh later. Release this temporary query
++        # mesh before importing the large terrain into the simulation.
++        del query_mesh
++        self._import_chunked_mesh(name, mesh)
++
++    def _import_chunked_mesh(self, name: str, mesh: trimesh.Trimesh):
++        from pxr import Gf, UsdGeom, UsdPhysics
++
++        stage = sim_utils.get_current_stage()
++        prim_path = f"{self.cfg.prim_path}/{name}"
++        if prim_path in self.terrain_prim_paths:
++            raise ValueError(f"Terrain already exists: {prim_path}")
++        UsdGeom.Xform.Define(stage, prim_path)
++        # Keep the full surface for rendering and Warp ray queries, but never
++        # cook it as one collider.
++        define_mesh(stage, f"{prim_path}/mesh", mesh)
++        if self.cfg.visual_material is not None:
++            material_path = f"{prim_path}/visualMaterial"
++            self.cfg.visual_material.func(material_path, self.cfg.visual_material)
++            sim_utils.bind_visual_material(f"{prim_path}/mesh", material_path)
++        physics_material_path = f"{prim_path}/physicsMaterial"
++        self.cfg.physics_material.func(physics_material_path, self.cfg.physics_material)
++        UsdGeom.Scope.Define(stage, f"{prim_path}/colliders")
++        chunk_count = 0
++        for chunk_count, chunk in enumerate(collision_chunks(mesh), start=1):
++            path = f"{prim_path}/colliders/chunk_{chunk_count:04d}"
++            # Put each collider in a local frame instead of authoring every
++            # chunk with distant coordinates at the same world-space origin.
++            center = chunk.bounds.mean(axis=0)
++            chunk.apply_translation(-center)
++            collider = define_mesh(stage, path, chunk)
++            UsdGeom.Xformable(collider).AddTranslateOp().Set(Gf.Vec3d(*center))
++            collider.CreateVisibilityAttr(UsdGeom.Tokens.invisible)
++            sim_utils.define_collision_properties(path, sim_utils.CollisionPropertiesCfg(collision_enabled=True))
++            # Exact static triangles; convex approximation would fill valleys.
++            UsdPhysics.MeshCollisionAPI.Apply(collider.GetPrim()).CreateApproximationAttr("none")
++            sim_utils.bind_physics_material(path, physics_material_path)
++        self.terrain_prim_paths.append(prim_path)
++        print(f"[INFO] Ant terrain: {len(mesh.faces):,} triangles split into {chunk_count} collision meshes.")
++
++    def configure_env_origins(self, origins=None):
++        if self.cfg.terrain_type == "generator":
++            self.terrain_origins = None
++            self.env_origins = self._grid_origins
++        else:
++            super().configure_env_origins(origins)
+diff --git a/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/terrain_mdp.py b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/terrain_mdp.py
+new file mode 100644
+index 0000000..9c3fc44
+--- /dev/null
++++ b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/terrain_mdp.py
+@@ -0,0 +1,28 @@
++# Copyright (c) 2022-2025, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).
++# All rights reserved.
++#
++# SPDX-License-Identifier: BSD-3-Clause
++
++"""Ground-relative height terms for the Ant's generated terrain."""
++
++from __future__ import annotations
++
++import torch
++from typing import TYPE_CHECKING
++
++if TYPE_CHECKING:
++    from isaaclab.envs import ManagerBasedRLEnv
++
++
++def base_height_above_ground(env: ManagerBasedRLEnv) -> torch.Tensor:
++    """Torso clearance as one observation, preserving the policy's observation size."""
++    ground_z = env.scene["ground_height"].data.ray_hits_w[:, 0, 2]
++    height = env.scene["robot"].data.root_pos_w[:, 2] - ground_z
++    # A ray can miss beyond the finite terrain. Keep observations finite on that
++    # terminal step and treat missing ground as a fall in the termination below.
++    return torch.nan_to_num(height, nan=0.0, posinf=0.0, neginf=0.0).unsqueeze(-1)
++
++
++def root_height_below_ground_minimum(env: ManagerBasedRLEnv, minimum_height: float) -> torch.Tensor:
++    """Terminate below the local ground clearance threshold, rather than world Z."""
++    return base_height_above_ground(env).squeeze(-1) < minimum_height
+diff --git a/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/agents/rsl_rl_ppo_cfg.py b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/agents/rsl_rl_ppo_cfg.py
+index 5257b05..3106bf6 100644
+--- a/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/agents/rsl_rl_ppo_cfg.py
++++ b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/agents/rsl_rl_ppo_cfg.py
+@@ -36,3 +36,12 @@ class AntPPORunnerCfg(RslRlOnPolicyRunnerCfg):
+         desired_kl=0.01,
+         max_grad_norm=1.0,
+     )
++
++
++@configclass
++class AntStablePPORunnerCfg(AntPPORunnerCfg):
++    """Small updates to an already walking policy, logged separately from Ant."""
++
++    experiment_name = "ant_stable"
++    max_iterations = 300
++    algorithm = AntPPORunnerCfg().algorithm.replace(learning_rate=1.0e-4, schedule="fixed", entropy_coef=0.001)
+diff --git a/source/isaaclab/isaaclab/terrains/terrain_generator.py b/source/isaaclab/isaaclab/terrains/terrain_generator.py
+index 456aa88..148e584 100644
+--- a/source/isaaclab/isaaclab/terrains/terrain_generator.py
++++ b/source/isaaclab/isaaclab/terrains/terrain_generator.py
+@@ -266,6 +266,9 @@ class TerrainGenerator:
+ 
+     def _add_terrain_border(self):
+         """Add a surrounding border over all the sub-terrains into the terrain meshes."""
++        # Zero-width boxes leave degenerate top faces that PhysX cannot cook.
++        if self.cfg.border_width == 0.0:
++            return
+         # border parameters
+         border_size = (
+             self.cfg.num_rows * self.cfg.size[0] + 2 * self.cfg.border_width,
+diff --git a/scripts/reinforcement_learning/rsl_rl/train.py b/scripts/reinforcement_learning/rsl_rl/train.py
+index e8e6d70..4b7e7dc 100644
+--- a/scripts/reinforcement_learning/rsl_rl/train.py
++++ b/scripts/reinforcement_learning/rsl_rl/train.py
+@@ -27,6 +27,12 @@ parser.add_argument(
+ )
+ parser.add_argument("--seed", type=int, default=None, help="Seed used for the environment")
+ parser.add_argument("--max_iterations", type=int, default=None, help="RL Policy training iterations.")
++parser.add_argument(
++    "--warm_start",
++    type=str,
++    default=None,
++    help="Load policy/value weights from a local checkpoint with a fresh optimizer and iteration counter.",
++)
+ parser.add_argument(
+     "--distributed", action="store_true", default=False, help="Run training with multiple GPUs or nodes."
+ )
+@@ -36,6 +42,8 @@ cli_args.add_rsl_rl_args(parser)
+ # append AppLauncher cli args
+ AppLauncher.add_app_launcher_args(parser)
+ args_cli, hydra_args = parser.parse_known_args()
++if args_cli.warm_start and args_cli.resume:
++    parser.error("--warm_start and --resume are mutually exclusive")
+ 
+ # always enable cameras to record video
+ if args_cli.video:
+@@ -109,6 +117,12 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
+     """Train with RSL-RL agent."""
+     # override configurations with non-hydra CLI arguments
+     agent_cfg = cli_args.update_rsl_rl_cfg(agent_cfg, args_cli)
++    if args_cli.warm_start:
++        if agent_cfg.resume or agent_cfg.algorithm.class_name == "Distillation":
++            raise ValueError("--warm_start cannot be combined with resume or distillation.")
++        warm_start_path = os.path.abspath(args_cli.warm_start)
++        if not os.path.isfile(warm_start_path):
++            raise FileNotFoundError(warm_start_path)
+     env_cfg.scene.num_envs = args_cli.num_envs if args_cli.num_envs is not None else env_cfg.scene.num_envs
+     agent_cfg.max_iterations = (
+         args_cli.max_iterations if args_cli.max_iterations is not None else agent_cfg.max_iterations
+@@ -194,6 +208,10 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
+         raise ValueError(f"Unsupported runner class: {agent_cfg.class_name}")
+     # write git state to logs
+     runner.add_git_repo_to_log(__file__)
++    if args_cli.warm_start:
++        print(f"[INFO]: Warm-starting weights from: {warm_start_path}")
++        runner.load(warm_start_path, load_optimizer=False)
++        runner.current_learning_iteration = 0
+     # load the checkpoint
+     if agent_cfg.resume or agent_cfg.algorithm.class_name == "Distillation":
+         print(f"[INFO]: Loading model checkpoint from: {resume_path}")
+diff --git a/scripts/reinforcement_learning/rsl_rl/play.py b/scripts/reinforcement_learning/rsl_rl/play.py
+index 11ef739..a251fc6 100644
+--- a/scripts/reinforcement_learning/rsl_rl/play.py
++++ b/scripts/reinforcement_learning/rsl_rl/play.py
+@@ -34,12 +34,18 @@ parser.add_argument(
+     help="Use the pre-trained checkpoint from Nucleus.",
+ )
+ parser.add_argument("--real-time", action="store_true", default=False, help="Run in real-time, if possible.")
++parser.add_argument("--max_steps", type=int, default=0, help="Stop after this many simulation steps (0: unlimited).")
++parser.add_argument(
++    "--diagnostics", action="store_true", help="Report robot movement, action magnitudes, and resets during playback."
++)
+ # append RSL-RL cli arguments
+ cli_args.add_rsl_rl_args(parser)
+ # append AppLauncher cli args
+ AppLauncher.add_app_launcher_args(parser)
+ # parse the arguments
+ args_cli, hydra_args = parser.parse_known_args()
++if args_cli.max_steps < 0:
++    parser.error("--max_steps must be non-negative")
+ # always enable cameras to record video
+ if args_cli.video:
+     args_cli.enable_cameras = True
+@@ -177,6 +183,13 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
+     # reset environment
+     obs = env.get_observations()
+     timestep = 0
++    if args_cli.diagnostics:
++        robot = env.unwrapped.scene["robot"]
++        diagnostic_start = time.perf_counter()
++        observed_distance_max = 0.0
++        terminated_count = 0
++        timeout_count = 0
++        report_interval = max(1, round(1.0 / dt))
+     # simulate environment
+     while simulation_app.is_running():
+         start_time = time.time()
+@@ -186,8 +199,40 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
+             actions = policy(obs)
+             # env stepping
+             obs, _, _, _ = env.step(actions)
++        timestep += 1
++        if args_cli.diagnostics:
++            # This is the largest observed displacement from the reset location,
++            # not a path length. Auto-reset can hide the final terminal position.
++            distance = torch.linalg.vector_norm(
++                robot.data.root_pos_w[:, :2]
++                - env.unwrapped.scene.env_origins[:, :2]
++                - robot.data.default_root_state[:, :2],
++                dim=-1,
++            )
++            observed_distance_max = max(observed_distance_max, distance.max().item())
++            terminated_count += int(env.unwrapped.reset_terminated.sum().item())
++            timeout_count += int(env.unwrapped.reset_time_outs.sum().item())
++            if timestep % report_interval == 0 or timestep == args_cli.max_steps:
++                speed = torch.linalg.vector_norm(robot.data.root_lin_vel_w[:, :2], dim=-1).mean().item()
++                wall_time = time.perf_counter() - diagnostic_start
++                ground_info = ""
++                if "ground_height" in env.unwrapped.scene.sensors:
++                    ground_z = env.unwrapped.scene["ground_height"].data.ray_hits_w[:, 0, 2]
++                    finite = torch.isfinite(ground_z)
++                    clearance = robot.data.root_pos_w[:, 2] - ground_z
++                    clearance_mean = clearance[finite].mean().item() if finite.any() else float("nan")
++                    ground_info = (
++                        f" clearance_mean={clearance_mean:.3f}m missing_ground={(~finite).sum().item()}"
++                    )
++                print(
++                    f"[DIAG] sim={timestep * dt:.1f}s wall={wall_time:.1f}s "
++                    f"distance_mean={distance.mean().item():.2f}m observed_distance_max={observed_distance_max:.2f}m "
++                    f"speed_mean={speed:.2f}m/s action_abs_mean={actions.abs().mean().item():.3f} "
++                    f"terminated={terminated_count} timeouts={timeout_count}{ground_info}"
++                )
++        if args_cli.max_steps and timestep >= args_cli.max_steps:
++            break
+         if args_cli.video:
+-            timestep += 1
+             # Exit the play loop after recording one video
+             if timestep == args_cli.video_length:
+                 break
+diff --git a/scripts/reinforcement_learning/rsl_rl/evaluate_ant.py b/scripts/reinforcement_learning/rsl_rl/evaluate_ant.py
+new file mode 100644
+index 0000000..2a1b699
+--- /dev/null
++++ b/scripts/reinforcement_learning/rsl_rl/evaluate_ant.py
+@@ -0,0 +1,136 @@
++# Copyright (c) 2022-2025, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).
++# All rights reserved.
++#
++# SPDX-License-Identifier: BSD-3-Clause
++
++"""Compare Ant checkpoints on identical terrain and initial states, one episode per ant.
++
++Example: ./isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/evaluate_ant.py
++    --headless --seed 1001 --checkpoints baseline.pt candidate.pt --output comparison.json
++
++Each environment contributes only its first episode. Automatic resets therefore
++cannot inflate the survival rate or mix successive episodes into distance metrics.
++"""
++
++import argparse
++from pathlib import Path
++
++from isaaclab.app import AppLauncher
++
++parser = argparse.ArgumentParser(description=__doc__)
++parser.add_argument("--checkpoints", nargs="+", required=True, help="Local RSL-RL checkpoint paths.")
++parser.add_argument("--num_envs", type=int, default=512)
++parser.add_argument("--seed", type=int, default=1001)
++parser.add_argument("--output", type=Path, required=True)
++AppLauncher.add_app_launcher_args(parser)
++args = parser.parse_args()
++if args.num_envs < 1:
++    parser.error("--num_envs must be positive")
++for checkpoint in args.checkpoints:
++    if not Path(checkpoint).is_file():
++        parser.error(f"Checkpoint does not exist: {checkpoint}")
++
++app_launcher = AppLauncher(args)
++simulation_app = app_launcher.app
++
++import gymnasium as gym
++import json
++import torch
++
++from rsl_rl.runners import OnPolicyRunner
++
++from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
++
++import isaaclab_tasks  # noqa: F401
++from isaaclab_tasks.utils import load_cfg_from_registry, parse_env_cfg
++
++
++@torch.inference_mode()
++def evaluate(env, runner, checkpoint):
++    """Measure deterministic inference, including falls, without sampling policy noise."""
++    runner.load(checkpoint, load_optimizer=False)
++    policy = runner.get_inference_policy(device=env.unwrapped.device)
++    env.seed(args.seed)
++    obs, _ = env.reset()
++    base = env.unwrapped
++    robot = base.scene["robot"]
++    start = robot.data.root_pos_w[:, :2].clone()
++    active = torch.ones(env.num_envs, dtype=torch.bool, device=base.device)
++    survived = torch.zeros_like(active)
++    failed = torch.zeros_like(active)
++    samples = torch.zeros(env.num_envs, device=base.device)
++    sway_sum = torch.zeros_like(samples)
++    action_delta_sum = torch.zeros_like(samples)
++    speed_sum = torch.zeros_like(samples)
++    forward_distance = torch.zeros_like(samples)
++    previous_actions = torch.zeros(env.num_envs, env.num_actions, device=base.device)
++
++    for step in range(base.max_episode_length):
++        if not simulation_app.is_running():
++            raise RuntimeError("Simulator closed before evaluation finished")
++        actions = policy(obs)
++        # Sample before stepping: terminal steps automatically reset the robot.
++        # Endpoint displacement therefore excludes at most one simulation step.
++        forward_distance[active] = (robot.data.root_pos_w[:, 0] - start[:, 0])[active]
++        sway_sum[active] += robot.data.root_ang_vel_b[:, :2].square().sum(dim=-1)[active]
++        action_delta_sum[active] += (actions - previous_actions).square().mean(dim=-1)[active]
++        speed_sum[active] += robot.data.root_lin_vel_w[:, 0][active]
++        samples[active] += 1
++        previous_actions.copy_(actions)
++        obs, _, dones, _ = env.step(actions)
++        ended = active & dones.bool()
++        failed[ended] = base.reset_terminated[ended]
++        survived[ended] = base.reset_time_outs[ended] & ~base.reset_terminated[ended]
++        active[ended] = False
++        if not active.any():
++            break
++
++    if active.any():
++        raise RuntimeError(f"{active.sum().item()} episodes did not finish within the configured limit")
++    values = {
++        "survival_rate": survived.float().mean().item(),
++        "failed_episodes": failed.sum().item(),
++        "episode_duration_mean_s": (samples * base.step_dt).mean().item(),
++        "observed_forward_distance_mean_m": forward_distance.mean().item(),
++        "forward_speed_mean_m_s": (speed_sum / samples).mean().item(),
++        "roll_pitch_angular_speed_rms_rad_s": (sway_sum / samples).sqrt().mean().item(),
++        "action_delta_rms_per_joint": (action_delta_sum / samples).sqrt().mean().item(),
++    }
++    if not all(torch.isfinite(torch.tensor(value)) for value in values.values()):
++        raise RuntimeError(f"Nonfinite evaluation metrics: {values}")
++    result = {"checkpoint": str(Path(checkpoint).resolve()), **values}
++    print(f"[EVAL] {json.dumps(result)}", flush=True)
++    return result
++
++
++def main():
++    task = "Isaac-Ant-v0"
++    env_cfg = parse_env_cfg(task, device=args.device, num_envs=args.num_envs)
++    env_cfg.seed = args.seed
++    # Explicit terrain seed makes held-out geometry independent of RNG consumption.
++    env_cfg.scene.terrain.terrain_generator.seed = args.seed
++    agent_cfg = load_cfg_from_registry(task, "rsl_rl_cfg_entry_point")
++    env = RslRlVecEnvWrapper(gym.make(task, cfg=env_cfg), clip_actions=agent_cfg.clip_actions)
++    try:
++        runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=env.unwrapped.device)
++        report = {
++            "task": task,
++            "seed": args.seed,
++            "num_envs": args.num_envs,
++            "episode_length_s": env_cfg.episode_length_s,
++            "distance_note": "Position sampled before terminal step; excludes at most one step.",
++            "results": [],
++        }
++        args.output.parent.mkdir(parents=True, exist_ok=True)
++        for checkpoint in args.checkpoints:
++            report["results"].append(evaluate(env, runner, checkpoint))
++            args.output.write_text(json.dumps(report, indent=2) + "\n")
++    finally:
++        env.close()
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    finally:
++        simulation_app.close()

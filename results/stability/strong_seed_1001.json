@@ -1,0 +1,39 @@
+{
+  "task": "Isaac-Ant-v0",
+  "seed": 1001,
+  "num_envs": 512,
+  "episode_length_s": 16.0,
+  "distance_note": "Position sampled before terminal step; excludes at most one step.",
+  "results": [
+    {
+      "checkpoint": "artifacts/models/rough.pt",
+      "survival_rate": 0.90234375,
+      "failed_episodes": 50,
+      "episode_duration_mean_s": 15.251041412353516,
+      "observed_forward_distance_mean_m": 67.49420166015625,
+      "forward_speed_mean_m_s": 4.342911720275879,
+      "roll_pitch_angular_speed_rms_rad_s": 2.051455497741699,
+      "action_delta_rms_per_joint": 0.32983750104904175
+    },
+    {
+      "checkpoint": "artifacts/models/strong_100.pt",
+      "survival_rate": 0.87109375,
+      "failed_episodes": 66,
+      "episode_duration_mean_s": 14.980924606323242,
+      "observed_forward_distance_mean_m": 66.59954833984375,
+      "forward_speed_mean_m_s": 4.3534369468688965,
+      "roll_pitch_angular_speed_rms_rad_s": 2.0707225799560547,
+      "action_delta_rms_per_joint": 0.33343613147735596
+    },
+    {
+      "checkpoint": "artifacts/models/strong.pt",
+      "survival_rate": 0.890625,
+      "failed_episodes": 56,
+      "episode_duration_mean_s": 15.075780868530273,
+      "observed_forward_distance_mean_m": 67.25716400146484,
+      "forward_speed_mean_m_s": 4.35982608795166,
+      "roll_pitch_angular_speed_rms_rad_s": 2.058943033218384,
+      "action_delta_rms_per_joint": 0.3317859172821045
+    }
+  ]
+}

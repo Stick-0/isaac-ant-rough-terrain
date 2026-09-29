@@ -1,0 +1,32 @@
+{
+  "flat": {
+    "episodes": 1024,
+    "failed_episodes": 845,
+    "survival_rate": 0.1748046875,
+    "observed_forward_distance_mean_m": 15.61471939086914,
+    "action_delta_rms_per_joint": 0.4036632180213928,
+    "roll_pitch_angular_speed_rms_rad_s": 1.5784925818443298,
+    "forward_speed_mean_m_s": 1.8357908725738525,
+    "episode_duration_mean_s": 7.834407806396484
+  },
+  "rough": {
+    "episodes": 1024,
+    "failed_episodes": 88,
+    "survival_rate": 0.9140625,
+    "observed_forward_distance_mean_m": 67.98395538330078,
+    "action_delta_rms_per_joint": 0.3317699581384659,
+    "roll_pitch_angular_speed_rms_rad_s": 2.059152841567993,
+    "forward_speed_mean_m_s": 4.371095418930054,
+    "episode_duration_mean_s": 15.305485248565674
+  },
+  "stable": {
+    "episodes": 1024,
+    "failed_episodes": 87,
+    "survival_rate": 0.9150390625,
+    "observed_forward_distance_mean_m": 68.65461349487305,
+    "action_delta_rms_per_joint": 0.32740601897239685,
+    "roll_pitch_angular_speed_rms_rad_s": 2.051844358444214,
+    "forward_speed_mean_m_s": 4.411334991455078,
+    "episode_duration_mean_s": 15.310449600219727
+  }
+}

@@ -1,0 +1,17 @@
+Historical diagnostic only; not the controlled policy comparison.
+[DIAG] sim=1.0s wall=0.3s distance_mean=2.25m observed_distance_max=3.08m speed_mean=3.70m/s action_abs_mean=0.396 terminated=0 timeouts=0 clearance_mean=0.524m missing_ground=0
+[DIAG] sim=2.0s wall=0.6s distance_mean=6.10m observed_distance_max=7.61m speed_mean=3.78m/s action_abs_mean=0.344 terminated=0 timeouts=0 clearance_mean=0.582m missing_ground=0
+[DIAG] sim=3.0s wall=1.1s distance_mean=9.66m observed_distance_max=11.91m speed_mean=3.95m/s action_abs_mean=0.353 terminated=1 timeouts=0 clearance_mean=0.604m missing_ground=0
+[DIAG] sim=4.0s wall=1.6s distance_mean=12.62m observed_distance_max=16.24m speed_mean=3.24m/s action_abs_mean=0.359 terminated=2 timeouts=0 clearance_mean=0.567m missing_ground=0
+[DIAG] sim=5.0s wall=1.9s distance_mean=15.43m observed_distance_max=20.17m speed_mean=3.90m/s action_abs_mean=0.306 terminated=3 timeouts=0 clearance_mean=0.584m missing_ground=0
+[DIAG] sim=6.0s wall=2.2s distance_mean=18.80m observed_distance_max=23.71m speed_mean=3.17m/s action_abs_mean=0.340 terminated=3 timeouts=0 clearance_mean=0.579m missing_ground=0
+[DIAG] sim=7.0s wall=2.5s distance_mean=22.15m observed_distance_max=28.03m speed_mean=3.48m/s action_abs_mean=0.279 terminated=3 timeouts=0 clearance_mean=0.635m missing_ground=0
+[DIAG] sim=8.0s wall=2.8s distance_mean=24.39m observed_distance_max=32.50m speed_mean=3.69m/s action_abs_mean=0.283 terminated=4 timeouts=0 clearance_mean=0.604m missing_ground=0
+[DIAG] sim=9.0s wall=3.1s distance_mean=26.13m observed_distance_max=37.25m speed_mean=3.90m/s action_abs_mean=0.330 terminated=6 timeouts=0 clearance_mean=0.577m missing_ground=0
+[DIAG] sim=10.0s wall=3.4s distance_mean=30.05m observed_distance_max=41.42m speed_mean=3.60m/s action_abs_mean=0.352 terminated=6 timeouts=0 clearance_mean=0.642m missing_ground=0
+[DIAG] sim=11.0s wall=3.7s distance_mean=28.80m observed_distance_max=45.53m speed_mean=3.17m/s action_abs_mean=0.296 terminated=8 timeouts=0 clearance_mean=0.636m missing_ground=0
+[DIAG] sim=12.0s wall=4.0s distance_mean=29.88m observed_distance_max=49.71m speed_mean=3.44m/s action_abs_mean=0.267 terminated=9 timeouts=0 clearance_mean=0.551m missing_ground=0
+[DIAG] sim=13.0s wall=4.2s distance_mean=33.58m observed_distance_max=54.58m speed_mean=3.77m/s action_abs_mean=0.266 terminated=9 timeouts=0 clearance_mean=0.601m missing_ground=0
+[DIAG] sim=14.0s wall=4.5s distance_mean=37.39m observed_distance_max=58.82m speed_mean=4.00m/s action_abs_mean=0.293 terminated=9 timeouts=0 clearance_mean=0.549m missing_ground=0
+[DIAG] sim=15.0s wall=4.8s distance_mean=41.38m observed_distance_max=62.65m speed_mean=3.79m/s action_abs_mean=0.296 terminated=9 timeouts=0 clearance_mean=0.592m missing_ground=0
+[DIAG] sim=16.0s wall=5.3s distance_mean=13.75m observed_distance_max=66.78m speed_mean=1.92m/s action_abs_mean=0.380 terminated=9 timeouts=8 clearance_mean=0.526m missing_ground=0
