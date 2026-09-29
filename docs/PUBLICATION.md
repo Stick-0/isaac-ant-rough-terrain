@@ -7,6 +7,7 @@
 - 모델 5개: flat, rough, stable, strong, strong의 iteration 100 중간 모델.
 - 실제 평가의 집계 JSON, TensorBoard에서 추출한 학습 곡선 CSV, 재계산 가능한 표와 그림.
 - 실험 목적·지표 정의·실패·한계·재현 명령.
+- 실제 렌더링한 지형 사진, 세 가지 16초 보행 영상, 같은 험지의 좌우 비교 영상과 GIF 미리보기. 촬영은 별도의 16개 환경 데모다.
 
 모델은 실제 학습된 tensor checkpoint이며 원시 설정과 SHA-256을 [`manifest.json`](../manifest.json)에 기록했습니다. 추론 전용 모델로 다시 변환하지 않아 학습 체크포인트의 원래 내용을 보존합니다.
 

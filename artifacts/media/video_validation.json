@@ -1,0 +1,66 @@
+[
+  {
+    "file": "flat_on_flat.mp4",
+    "frames": 480,
+    "duration_s": 16.0,
+    "fps": 30.0,
+    "size": [
+      960,
+      604
+    ],
+    "sampled_frames": [
+      0,
+      90,
+      240,
+      450
+    ]
+  },
+  {
+    "file": "flat_on_rough.mp4",
+    "frames": 480,
+    "duration_s": 16.0,
+    "fps": 30.0,
+    "size": [
+      960,
+      604
+    ],
+    "sampled_frames": [
+      0,
+      90,
+      240,
+      450
+    ]
+  },
+  {
+    "file": "rough_on_rough.mp4",
+    "frames": 480,
+    "duration_s": 16.0,
+    "fps": 30.0,
+    "size": [
+      960,
+      604
+    ],
+    "sampled_frames": [
+      0,
+      90,
+      240,
+      450
+    ]
+  },
+  {
+    "file": "comparison.mp4",
+    "frames": 480,
+    "duration_s": 16.0,
+    "fps": 30.0,
+    "size": [
+      1920,
+      604
+    ],
+    "sampled_frames": [
+      0,
+      90,
+      240,
+      450
+    ]
+  }
+]

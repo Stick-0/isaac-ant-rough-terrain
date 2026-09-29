@@ -6,6 +6,22 @@ Isaac Lab의 원본 `Isaac-Ant-v0`를 출발점으로, 연속적인 랜덤 지�
 
 이 결과는 학습 시드 1개, 동일한 지형 생성 분포의 새 시드 2개에서 측정했습니다. 모든 미지 환경에 대한 강건성이나 안정성 보상만의 인과효과를 주장하지 않습니다.
 
+## 실제 지형과 보행 영상
+
+![생성된 랜덤 험지와 개미들의 격자 배치](artifacts/media/rough_terrain_overview.png)
+
+실제 Isaac Sim에서 촬영한 험지의 일부입니다. 아래는 같은 험지에서 평지 학습 모델(왼쪽)과 험지 학습 모델(오른쪽)을 비교한 영상입니다.
+
+[![두 모델의 첫 6초 비교 미리보기](artifacts/media/comparison_preview.gif)](artifacts/media/comparison.mp4)
+
+GIF는 앞 6초의 실시간 미리보기입니다. [전체 16초 비교 영상](artifacts/media/comparison.mp4)에는 넘어짐과 자동 리셋을 포함했습니다.
+
+- [평지 학습 모델이 원본 평지에서 걷는 영상](artifacts/media/flat_on_flat.mp4)
+- [평지 학습 모델이 험지에서 걷는 영상](artifacts/media/flat_on_rough.mp4)
+- [험지 학습 모델이 같은 험지에서 걷는 영상](artifacts/media/rough_on_rough.mp4)
+
+촬영은 seed 2001, 16개 환경 중 개미 0을 따라가는 데모입니다. 기존 512개 환경 정량 평가와는 별개입니다. [사진 더 보기·촬영 조건·재현 명령](docs/MEDIA.md)
+
 ![새 지형에서 세 모델 비교](artifacts/figures/transfer_comparison.png)
 
 ## 원본에서 무엇을 바꿨나
@@ -92,6 +108,7 @@ patches/isaaclab.patch    고정한 원본에 적용할 전체 변경
 configs/runs/             각 학습 실행의 환경·PPO 설정
 artifacts/models/         평지·험지·추가 학습·실패 실험 체크포인트
 artifacts/figures/        원시 결과에서 생성한 그래프
+artifacts/media/          실제 지형 사진·보행 영상·촬영 기록
 results/transfer/         새 지형 2001/2002에서 세 모델의 측정값
 results/stability/        이전 1001/1002 실험과 강한 패널티 실패 기록
 results/training/         TensorBoard에서 추출한 학습 곡선 CSV

@@ -1,0 +1,105 @@
+{
+  "source": "Actual Isaac Sim RGB renders; no generated illustrations",
+  "comparison": "Left: flat-trained; right: rough-trained; same terrain and reset states",
+  "video_duration_s": 16.0,
+  "fps": 30,
+  "preview_duration_s": 6,
+  "preview_fps": 8,
+  "assets": [
+    {
+      "file": "comparison.mp4",
+      "bytes": 8381391,
+      "sha256": "66723a85f57e21d22935319a30d5f35d019e94df3db44ca1cfedbbe781ffd02b"
+    },
+    {
+      "file": "comparison_poster.jpg",
+      "bytes": 181608,
+      "sha256": "98a900cd159ee4bb678c25d58d5ee75ec888e4a1789274f508ff4c2a6966a9be"
+    },
+    {
+      "file": "comparison_preview.gif",
+      "bytes": 7735051,
+      "sha256": "cca0407cb017763430ffd12636946b35ed2bbd8e05df830d82e7c88b535f7ce9"
+    },
+    {
+      "file": "flat_on_flat.mp4",
+      "bytes": 20260110,
+      "sha256": "53a27995914f02070befc962b2a37ed6d8e46cc54af045ac49ac0f3ff687a96c"
+    },
+    {
+      "file": "flat_on_flat_00s.jpg",
+      "bytes": 125251,
+      "sha256": "ea680186cb07943cd93ab2d01c295c01873824fca77c5ce275a1a5eb795ac43b"
+    },
+    {
+      "file": "flat_on_flat_03s.jpg",
+      "bytes": 118510,
+      "sha256": "886c5e66b7667548d3dc590352a9f5e0c1487d5c3750bcc37606758e0847a3f9"
+    },
+    {
+      "file": "flat_on_flat_08s.jpg",
+      "bytes": 115425,
+      "sha256": "c65beb38dc4dc5407f1b7fb743f2afaa00d645c0d53ebf00de5ab5175c58d948"
+    },
+    {
+      "file": "flat_on_rough.mp4",
+      "bytes": 14613959,
+      "sha256": "35c0bee41e6dff50e2be936b90f2ae32d60797c19bc7e06f9e04d78f07f860bb"
+    },
+    {
+      "file": "flat_on_rough_00s.jpg",
+      "bytes": 123493,
+      "sha256": "15490be779e93be74fe8717efb78b71ce0ab291345f9c3fef5737fa89417945e"
+    },
+    {
+      "file": "flat_on_rough_03s.jpg",
+      "bytes": 116451,
+      "sha256": "450be329cc202317b5d82fb2a585396ad5df1e42916a36ff3e4ba1fc60b51317"
+    },
+    {
+      "file": "flat_on_rough_08s.jpg",
+      "bytes": 119575,
+      "sha256": "bd95c5d68c398452b10d1d3413d8dce72600e02fede91bcbd1ab688235f82a69"
+    },
+    {
+      "file": "flat_terrain_detail.png",
+      "bytes": 341345,
+      "sha256": "324ea85cd74774be26f695cb76a2e22700cdd3f6a7a42d7e9d2eb82bdc3c886d"
+    },
+    {
+      "file": "flat_terrain_overview.png",
+      "bytes": 482657,
+      "sha256": "96e73cacc5e481544d74c3202cc99688013713eabd3e6ec90e0315676522f16f"
+    },
+    {
+      "file": "rough_on_rough.mp4",
+      "bytes": 19068177,
+      "sha256": "3d14b8b543abc84224230b74364bc3b1856086c8a93f8eec74fe40776c9a3dea"
+    },
+    {
+      "file": "rough_on_rough_00s.jpg",
+      "bytes": 124268,
+      "sha256": "1f53d36ca2033106b057d15639025f9d4b96317541ca0d8db1f478197269c98b"
+    },
+    {
+      "file": "rough_on_rough_03s.jpg",
+      "bytes": 122126,
+      "sha256": "569dd7cd1cb8db2ca03e0b13f705a6f837bfd8093e79e945fbbc5128deccb90f"
+    },
+    {
+      "file": "rough_on_rough_08s.jpg",
+      "bytes": 101958,
+      "sha256": "66e8229ffe36786b77dbf5b009180045b8cf19215881865626ba6a3ae4be0bc8"
+    },
+    {
+      "file": "rough_terrain_detail.png",
+      "bytes": 285083,
+      "sha256": "78c0d826de1fefaa2e600fe2822520902be3e8b0ccf9803182a7b3ba59b72471"
+    },
+    {
+      "file": "rough_terrain_overview.png",
+      "bytes": 509159,
+      "sha256": "ae48cdc6901a36879b9b5c1dc5e94f9a5e74265cbe586e369d1b6ac628fd2b21"
+    }
+  ]
+}

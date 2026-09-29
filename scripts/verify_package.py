@@ -48,6 +48,27 @@ def main():
         for path in (ROOT / folder).rglob("*"):
             if path.is_file():
                 assert "/home/" not in path.read_text(), f"Local absolute path: {path}"
+    media_root = ROOT / "artifacts/media"
+    if (media_root / "index.json").exists():
+        index = json.loads((media_root / "index.json").read_text())
+        for asset in index["assets"]:
+            data = (media_root / asset["file"]).read_bytes()
+            assert len(data) == asset["bytes"], asset["file"]
+            assert hashlib.sha256(data).hexdigest() == asset["sha256"], asset["file"]
+        clips = {}
+        for name in ("flat_on_flat", "flat_on_rough", "rough_on_rough"):
+            clip = json.loads((media_root / (name + ".json")).read_text())
+            assert clip["frames"] == 480 and clip["fps"] == 30
+            assert clip["simulation_seconds"] == 16 and clip["playback_speed"] == 1
+            assert len(clip["telemetry"]) == clip["frames"]
+            for i, sample in enumerate(clip["telemetry"]):
+                assert math.isclose(sample["time_s"], i / 30, abs_tol=1e-9)
+            model = Path(clip["checkpoint"]).stem
+            assert clip["checkpoint_sha256"] == manifest["models"][model]["sha256"]
+            clips[name] = clip
+        for key in ("seed", "num_envs", "initial_state_sha256", "camera_eye_offset", "camera_target_offset"):
+            assert clips["flat_on_rough"][key] == clips["rough_on_rough"][key]
+        print(f"PASS: {len(index['assets'])} media hashes, capture timelines and identical rough-terrain resets")
     assert "<!-- RESULTS_TABLE -->" not in (ROOT / "README.md").read_text()
     print(f"PASS: {len(manifest['models'])} checkpoint hashes, 3072 transfer episodes, aggregate values, "
           f"{len(python_files)} Python files and public paths")

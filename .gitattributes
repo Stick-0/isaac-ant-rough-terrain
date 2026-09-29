@@ -2,3 +2,6 @@
 *.pt binary
 *.png binary
 *.csv text eol=lf
+*.mp4 binary
+*.gif binary
+*.jpg binary
