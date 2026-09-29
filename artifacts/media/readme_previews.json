@@ -1,0 +1,53 @@
+[
+  {
+    "model": "flat",
+    "source": "flat_on_flat.mp4",
+    "source_sha256": "53a27995914f02070befc962b2a37ed6d8e46cc54af045ac49ac0f3ff687a96c",
+    "preview": "flat_on_flat_preview.gif",
+    "sha256": "52ab35dc11db025798bfc2ccf7e6102cef76f1b7d0330845fd0c91f51bc5af50",
+    "start_s": 0,
+    "duration_s": 6,
+    "fps": 10,
+    "frames": 60,
+    "playback_speed": 1,
+    "loop": true,
+    "dimensions": [
+      640,
+      403
+    ]
+  },
+  {
+    "model": "rough",
+    "source": "rough_on_rough.mp4",
+    "source_sha256": "3d14b8b543abc84224230b74364bc3b1856086c8a93f8eec74fe40776c9a3dea",
+    "preview": "rough_on_rough_preview.gif",
+    "sha256": "91e7a64c86f82033617663bc61544a8f73e8b7716af3a43414341b31018abc1f",
+    "start_s": 0,
+    "duration_s": 6,
+    "fps": 10,
+    "frames": 60,
+    "playback_speed": 1,
+    "loop": true,
+    "dimensions": [
+      640,
+      403
+    ]
+  },
+  {
+    "model": "recovery",
+    "source": "reward_revision/recovery_on_rough.mp4",
+    "source_sha256": "6d5197bcc0da98ea418a263c618b9137f971b4fcafc3a822808bcac07de3e219",
+    "preview": "reward_revision/recovery_on_rough_preview.gif",
+    "sha256": "951bf1f53e9f46c7eb37928587713de98f287908ed1c9267ecb99ac000729c1a",
+    "start_s": 0,
+    "duration_s": 6,
+    "fps": 10,
+    "frames": 60,
+    "playback_speed": 1,
+    "loop": true,
+    "dimensions": [
+      640,
+      403
+    ]
+  }
+]

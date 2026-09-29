@@ -1,6 +1,6 @@
 # 세 모델의 지형과 보행 영상
 
-모든 사진과 영상은 저장된 모델을 Isaac Sim에서 실제 실행해 촬영했다. 각 영상은 16초, 30fps이며 별도의 16환경 데모다.
+모든 사진과 영상은 저장된 모델을 Isaac Sim에서 실제 실행해 촬영했다. 각 영상은 16초, 30fps이며 별도의 16환경 데모다. 메인 README에는 세 모델의 앞 6초를 640px·10fps GIF로 표시한다. 재생 속도는 원본과 같고 반복 재생하며, 누르면 전체 MP4로 연결된다.
 
 ## 1. 평지 모델
 
@@ -61,6 +61,11 @@ python -m pip install -r requirements-media.txt
 
 # 평지/험지 좌우 비교 영상·GIF 및 미디어 해시 생성
 python scripts/compose_media.py
+
+# 메인 README의 세 모델 반복 미리보기 생성
+python scripts/make_readme_previews.py
 ```
 
 MP4 재생을 지원하지 않는 GitHub 화면에서는 파일을 내려받아 볼 수 있다. 사진·영상 및 촬영 JSON의 경로는 문서 정리 전과 같다.
+
+미리보기의 원본 영상 해시·프레임 수·길이·변환 조건은 [readme_previews.json](../artifacts/media/readme_previews.json)에 기록한다. 구간은 세 영상 모두 0~6초로 고정했다.

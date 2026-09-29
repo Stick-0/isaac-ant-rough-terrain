@@ -2,6 +2,8 @@
 
 Isaac Lab의 Ant가 평지에서 걷는 것부터 시작해, 랜덤 험지에 적응하고 안정성을 높이는 과정을 세 모델로 정리했습니다.
 
+각 모델의 보행 미리보기는 실제 영상의 앞 6초를 원래 속도로 반복 재생합니다. 움직이는 이미지를 누르면 전체 16초 영상을 볼 수 있습니다.
+
 | 구분 | 평지 모델 | 험지 모델 | 추가 학습 모델 |
 | --- | --- | --- | --- |
 | 목적 | 원본 환경의 기준 보행 | 울퉁불퉁한 지형에 적응 | 험지에서 낙상과 몸체 흔들림 감소 |
@@ -18,7 +20,7 @@ Isaac Lab의 Ant가 평지에서 걷는 것부터 시작해, 랜덤 험지에 �
 
 평지에서는 걷지만, 새 험지에 적용했을 때 16초 생존율은 17.48%, 평균 전진 거리는 15.61m였습니다. 이 험지 평가에는 공통 지면 상대 높이 관측을 적용했습니다.
 
-[![평지 모델의 원본 평지 보행](artifacts/media/flat_on_flat_03s.jpg)](artifacts/media/flat_on_flat.mp4)
+[![평지 모델 보행 — 앞 6초 반복 미리보기](artifacts/media/flat_on_flat_preview.gif)](artifacts/media/flat_on_flat.mp4)
 
 [평지 보행 영상](artifacts/media/flat_on_flat.mp4) · [험지에 적용한 영상](artifacts/media/flat_on_rough.mp4) · [원본 설정](reference/original/ant_env_cfg.py)
 
@@ -30,7 +32,14 @@ Isaac Lab의 Ant가 평지에서 걷는 것부터 시작해, 랜덤 험지에 �
 - 몸통 높이 관측과 낙상 판정을 바로 아래 지면 기준으로 바꿨습니다.
 - 타일 경계를 연결하고 충돌 메시를 공간별로 나눠 정상적으로 밟고 걷도록 했습니다.
 
+[![험지 모델 보행 — 앞 6초 반복 미리보기](artifacts/media/rough_on_rough_preview.gif)](artifacts/media/rough_on_rough.mp4)
+
+<details>
+<summary>생성된 험지 사진 보기</summary>
+
 ![실제로 생성한 랜덤 험지](artifacts/media/rough_terrain_overview.png)
+
+</details>
 
 지형은 720×720m이고 테두리는 없습니다. 평지 모델과 같은 새 지형(seed 2001/2002)에서 생존율은 17.48% → 91.41%, 평균 거리는 15.61m → 67.98m로 늘었습니다.
 
@@ -56,7 +65,7 @@ Isaac Lab의 Ant가 평지에서 걷는 것부터 시작해, 랜덤 험지에 �
 
 낙상은 43.9%, 몸체 각속도 RMS는 13.0% 줄었습니다. 대신 속도는 4.2%, 거리는 2.6% 낮아져, 조금 느리지만 더 안정적으로 걷는 모델입니다.
 
-[![추가 학습 모델의 험지 보행](artifacts/media/reward_revision/recovery_on_rough_08s.jpg)](artifacts/media/reward_revision/recovery_on_rough.mp4)
+[![추가 학습 모델 보행 — 앞 6초 반복 미리보기](artifacts/media/reward_revision/recovery_on_rough_preview.gif)](artifacts/media/reward_revision/recovery_on_rough.mp4)
 
 [보행 영상](artifacts/media/reward_revision/recovery_on_rough.mp4) · [리워드 설계와 코드](docs/REWARD_DESIGN.md) · [단계별 평가 결과](docs/RESULTS.md)
 

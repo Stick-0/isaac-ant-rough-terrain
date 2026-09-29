@@ -42,6 +42,11 @@
       "sha256": "c65beb38dc4dc5407f1b7fb743f2afaa00d645c0d53ebf00de5ab5175c58d948"
     },
     {
+      "file": "flat_on_flat_preview.gif",
+      "bytes": 5518438,
+      "sha256": "52ab35dc11db025798bfc2ccf7e6102cef76f1b7d0330845fd0c91f51bc5af50"
+    },
+    {
       "file": "flat_on_rough.mp4",
       "bytes": 14613959,
       "sha256": "35c0bee41e6dff50e2be936b90f2ae32d60797c19bc7e06f9e04d78f07f860bb"
@@ -92,6 +97,11 @@
       "sha256": "a0dd64c389c21f9f69d2abee41f7da4f4af712084833bb562e861dc2fc67f092"
     },
     {
+      "file": "reward_revision/recovery_on_rough_preview.gif",
+      "bytes": 6375930,
+      "sha256": "951bf1f53e9f46c7eb37928587713de98f287908ed1c9267ecb99ac000729c1a"
+    },
+    {
       "file": "reward_revision/rough_terrain_detail.png",
       "bytes": 285115,
       "sha256": "16b471bd8447d3d426eb74a7d6135d56d9d1672d2e6f991cf0310676e726a831"
@@ -120,6 +130,11 @@
       "file": "rough_on_rough_08s.jpg",
       "bytes": 101958,
       "sha256": "66e8229ffe36786b77dbf5b009180045b8cf19215881865626ba6a3ae4be0bc8"
+    },
+    {
+      "file": "rough_on_rough_preview.gif",
+      "bytes": 6458737,
+      "sha256": "91e7a64c86f82033617663bc61544a8f73e8b7716af3a43414341b31018abc1f"
     },
     {
       "file": "rough_terrain_detail.png",
