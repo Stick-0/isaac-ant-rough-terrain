@@ -45,3 +45,11 @@ class AntStablePPORunnerCfg(AntPPORunnerCfg):
     experiment_name = "ant_stable"
     max_iterations = 300
     algorithm = AntPPORunnerCfg().algorithm.replace(learning_rate=1.0e-4, schedule="fixed", entropy_coef=0.001)
+
+
+@configclass
+class AntRecoveryPPORunnerCfg(AntStablePPORunnerCfg):
+    """Same fine-tuning optimizer as the matched original-reward control."""
+
+    experiment_name = "ant_recovery"
+    max_iterations = 600

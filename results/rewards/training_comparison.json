@@ -1,0 +1,193 @@
+{
+  "environment_identical_except": [
+    "rewards",
+    "log_dir",
+    "io_descriptors_output_dir"
+  ],
+  "agent_identical_except": [
+    "experiment_name",
+    "run_name"
+  ],
+  "matched_settings_sha256": "eb7c15397bd33dec1e6fe57757c5bdc1692717da5a3266659c0f1ecd6a3976d2",
+  "initial_model": "artifacts/models/rough.pt",
+  "additional_iterations": 600,
+  "transitions_per_run": 78643200,
+  "reward_settings": {
+    "control": {
+      "progress": {
+        "func": "isaaclab_tasks.manager_based.classic.humanoid.mdp.rewards:progress_reward",
+        "params": {
+          "target_pos": {
+            "python_tag": "tuple",
+            "value": [
+              1000.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "weight": 1.0
+      },
+      "alive": {
+        "func": "isaaclab.envs.mdp.rewards:is_alive",
+        "params": {},
+        "weight": 0.5
+      },
+      "upright": {
+        "func": "isaaclab_tasks.manager_based.classic.humanoid.mdp.rewards:upright_posture_bonus",
+        "params": {
+          "threshold": 0.93
+        },
+        "weight": 0.1
+      },
+      "move_to_target": {
+        "func": "isaaclab_tasks.manager_based.classic.humanoid.mdp.rewards:move_to_target_bonus",
+        "params": {
+          "threshold": 0.8,
+          "target_pos": {
+            "python_tag": "tuple",
+            "value": [
+              1000.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "weight": 0.5
+      },
+      "action_l2": {
+        "func": "isaaclab.envs.mdp.rewards:action_l2",
+        "params": {},
+        "weight": -0.005
+      },
+      "energy": {
+        "func": "isaaclab_tasks.manager_based.classic.humanoid.mdp.rewards:power_consumption",
+        "params": {
+          "gear_ratio": {
+            ".*": 15.0
+          }
+        },
+        "weight": -0.05
+      },
+      "joint_pos_limits": {
+        "func": "isaaclab_tasks.manager_based.classic.humanoid.mdp.rewards:joint_pos_limits_penalty_ratio",
+        "params": {
+          "threshold": 0.99,
+          "gear_ratio": {
+            ".*": 15.0
+          }
+        },
+        "weight": -0.1
+      },
+      "action_rate": {
+        "func": "isaaclab.envs.mdp.rewards:action_rate_l2",
+        "params": {},
+        "weight": 0.0
+      },
+      "body_sway": {
+        "func": "isaaclab.envs.mdp.rewards:ang_vel_xy_l2",
+        "params": {},
+        "weight": 0.0
+      }
+    },
+    "recovery": {
+      "progress": {
+        "func": "isaaclab_tasks.manager_based.classic.ant.recovery_mdp:capped_target_speed",
+        "params": {
+          "speed_cap": 4.5,
+          "target_pos": {
+            "python_tag": "tuple",
+            "value": [
+              1000.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "weight": 1.0
+      },
+      "alive": {
+        "func": "isaaclab.envs.mdp.rewards:is_alive",
+        "params": {},
+        "weight": 0.5
+      },
+      "upright": {
+        "func": "isaaclab_tasks.manager_based.classic.humanoid.mdp.rewards:upright_posture_bonus",
+        "params": {
+          "threshold": 0.93
+        },
+        "weight": 0.1
+      },
+      "move_to_target": {
+        "func": "isaaclab_tasks.manager_based.classic.humanoid.mdp.rewards:move_to_target_bonus",
+        "params": {
+          "threshold": 0.8,
+          "target_pos": {
+            "python_tag": "tuple",
+            "value": [
+              1000.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "weight": 0.5
+      },
+      "action_l2": {
+        "func": "isaaclab.envs.mdp.rewards:action_l2",
+        "params": {},
+        "weight": -0.005
+      },
+      "energy": {
+        "func": "isaaclab_tasks.manager_based.classic.humanoid.mdp.rewards:power_consumption",
+        "params": {
+          "gear_ratio": {
+            ".*": 15.0
+          }
+        },
+        "weight": -0.05
+      },
+      "joint_pos_limits": {
+        "func": "isaaclab_tasks.manager_based.classic.humanoid.mdp.rewards:joint_pos_limits_penalty_ratio",
+        "params": {
+          "threshold": 0.99,
+          "gear_ratio": {
+            ".*": 15.0
+          }
+        },
+        "weight": -0.1
+      },
+      "fall": {
+        "func": "isaaclab_tasks.manager_based.classic.ant.recovery_mdp:fall_event",
+        "params": {},
+        "weight": -10.0
+      },
+      "clearance_risk": {
+        "func": "isaaclab_tasks.manager_based.classic.ant.recovery_mdp:low_clearance_risk",
+        "params": {
+          "safe_height": 0.48,
+          "fall_height": 0.31
+        },
+        "weight": -2.0
+      },
+      "tilt_risk": {
+        "func": "isaaclab_tasks.manager_based.classic.ant.recovery_mdp:tilt_risk",
+        "params": {
+          "safe_up": 0.93,
+          "critical_up": 0.5
+        },
+        "weight": -2.0
+      },
+      "action_rate": {
+        "func": "isaaclab.envs.mdp.rewards:action_rate_l2",
+        "params": {},
+        "weight": -0.01
+      },
+      "body_sway": {
+        "func": "isaaclab.envs.mdp.rewards:ang_vel_xy_l2",
+        "params": {},
+        "weight": -0.025
+      }
+    }
+  }
+}

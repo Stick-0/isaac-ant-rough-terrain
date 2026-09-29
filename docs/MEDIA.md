@@ -60,3 +60,15 @@ python scripts/compose_media.py
 ```
 
 GPU 촬영에는 Isaac Lab용 Python 환경을 사용한다. 기본 저장 경로는 `artifacts/media/`이고 `--output`으로 바꿀 수 있다. MP4 재생을 지원하지 않는 GitHub 화면에서는 파일을 내려받아 재생할 수 있으며, README의 GIF는 바로 볼 수 있다.
+
+## 새 보상 모델 영상 (2026-09-29 추가)
+
+[Recovery 16초 보행 영상](../artifacts/media/reward_revision/recovery_on_rough.mp4)을 추가했다. 기존 rough 영상과 지형 seed 2001, 16개 환경, 초기 상태 해시, 카메라, 480프레임/30fps가 일치한다. 관찰한 개미 0은 이 데모에서 16초 동안 넘어지지 않았다. 정량 성능은 별도 512환경 평가를 기준으로 하며 이 한 개체로 일반화하지 않는다.
+
+```bash
+"$ISAACLAB_ROOT/isaaclab.sh" -p scripts/record_media.py \
+  --headless --models recovery --terrain rough --seed 2001 --num_envs 16 \
+  --seconds 16 --fps 30 --output artifacts/media/reward_revision
+```
+
+이 명령은 공개 저장소 루트에서 실행한다. [새 보상 정량 결과와 상충 관계](REWARD_RESULTS.md).

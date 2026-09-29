@@ -108,4 +108,24 @@ python scripts/analyze.py --results-dir results/reproduced --output-dir results/
 python scripts/verify_package.py
 ```
 
-모델 SHA-256, 평가 집계의 일관성, 공개 경로, Python 문법을 검사합니다. 전체 소스 패치를 원본에서 확인하려면 `apply_overlay.py ... --check`를 별도로 실행합니다. 공개 작업에서는 고정한 원본 파일로 만든 임시 checkout에서 패치를 적용한 뒤 결과 10개 파일이 `overlay/`와 byte 단위로 같은지도 확인했습니다.
+모델 SHA-256, 평가 집계의 일관성, 공개 경로, Python 문법을 검사합니다. 전체 소스 패치를 원본에서 확인하려면 `apply_overlay.py ... --check`를 별도로 실행합니다. 공개 작업에서는 고정한 원본 파일로 만든 임시 checkout에서 패치를 적용한 뒤 결과 12개 파일이 `overlay/`와 byte 단위로 같은지도 확인했습니다.
+
+## 새 안정성 보상과 동일 예산 대조 실험
+
+새 태스크는 `Isaac-Ant-Recovery-v0`이다. 이전 Stable 설정은 기존 결과 재현을 위해 보존했다. [보상 설계와 실행 명령](REWARD_DESIGN.md)을 참고한다.
+
+```bash
+# 같은 초기 모델에서 원래 보상과 새 보상을 각각 600회 추가 학습
+bash scripts/train_rewards.sh
+
+# 공개 모델 4개를 같은 두 지도에서 비교하고 에피소드별 결과 저장
+bash scripts/evaluate_rewards.sh 4001 4002
+python scripts/analyze_rewards.py --results-dir results/reproduced_rewards \
+  --output-dir results/reproduced_rewards_summary
+
+# 새 보상 모델 재생
+"$ISAACLAB_ROOT/isaaclab.sh" -p \
+  "$ISAACLAB_ROOT/scripts/reinforcement_learning/rsl_rl/play.py" \
+  --task Isaac-Ant-Recovery-v0 --num_envs 64 \
+  --checkpoint "$ANT_REPORT_ROOT/artifacts/models/recovery.pt" --diagnostics
+```

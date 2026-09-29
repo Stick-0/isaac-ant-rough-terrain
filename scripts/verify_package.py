@@ -41,6 +41,53 @@ def main():
         for metric, value in values.items():
             if metric not in {"episodes", "failed_episodes"}:
                 assert math.isclose(value, sum(r[metric] for r in rows) / 2, rel_tol=1e-12)
+    reward_reports = list((ROOT / "results/rewards/test").glob("seed_*.json"))
+    if reward_reports:
+        assert {json.loads(p.read_text())["seed"] for p in reward_reports} == {4001, 4002}
+        mappings = {
+            "survived": "survival_rate", "duration_s": "episode_duration_mean_s",
+            "forward_distance_m": "observed_forward_distance_mean_m",
+            "forward_speed_m_s": "forward_speed_mean_m_s",
+            "body_sway_rms_rad_s": "roll_pitch_angular_speed_rms_rad_s",
+            "action_delta_rms": "action_delta_rms_per_joint",
+        }
+        collected = {name: [] for name in ("rough", "stable", "control", "recovery")}
+        for report_path in [*reward_reports, *(ROOT / "results/rewards/development").glob("seed_*.json")]:
+            report = json.loads(report_path.read_text())
+            assert report["num_envs"] == 512 and report["episode_length_s"] == 16
+            assert len(report["results"]) == 4
+            assert {Path(row["checkpoint"]).stem for row in report["results"]} == set(collected)
+            assert len({row["initial_state_sha256"] for row in report["results"]}) == 1
+            for row in report["results"]:
+                assert (ROOT / row["checkpoint"]).is_file()
+                model = Path(row["checkpoint"]).stem
+                assert row["checkpoint_sha256"] == manifest["models"][model]["sha256"]
+                assert len(row["initial_state_sha256"]) == 64
+                for key, metric in mappings.items():
+                    values = row["episodes"][key]
+                    assert len(values) == 512 and all(math.isfinite(v) for v in values)
+                    assert math.isclose(sum(values) / 512, row[metric], abs_tol=1e-5)
+                assert len(row["episodes"]["failed"]) == 512
+                assert sum(row["episodes"]["failed"]) == row["failed_episodes"]
+                assert all(a != b for a, b in zip(row["episodes"]["survived"], row["episodes"]["failed"]))
+                assert all(0 < v <= 16 for v in row["episodes"]["duration_s"])
+                if report_path in reward_reports:
+                    collected[Path(row["checkpoint"]).stem].append(row)
+        summary = json.loads((ROOT / "results/rewards/summary/aggregate.json").read_text())
+        for model, rows in collected.items():
+            assert len(rows) == 2
+            target = summary["models"][model]
+            assert target["episodes"] == 1024
+            assert target["failed_episodes"] == sum(row["failed_episodes"] for row in rows)
+            for metric in mappings.values():
+                assert math.isclose(target[metric], sum(row[metric] for row in rows) / 2, abs_tol=1e-8)
+        for baseline, comparison in summary["recovery_minus_baseline"].items():
+            expected = (summary["models"]["recovery"]["survival_rate"]
+                        - summary["models"][baseline]["survival_rate"])
+            assert math.isclose(comparison["survived"]["mean"], expected, abs_tol=1e-12)
+            count_delta = comparison["recovery_only_survived"] - comparison["baseline_only_survived"]
+            assert math.isclose(count_delta / 1024, expected, abs_tol=1e-12)
+        print("PASS: 4096 reward-test episodes, paired resets and episode-level aggregate consistency")
     python_files = list((ROOT / "scripts").glob("*.py")) + list((ROOT / "overlay").rglob("*.py"))
     for path in python_files:
         ast.parse(path.read_text(), filename=str(path))
@@ -68,6 +115,17 @@ def main():
             clips[name] = clip
         for key in ("seed", "num_envs", "initial_state_sha256", "camera_eye_offset", "camera_target_offset"):
             assert clips["flat_on_rough"][key] == clips["rough_on_rough"][key]
+        revision = media_root / "reward_revision/recovery_on_rough.json"
+        if revision.exists():
+            clip = json.loads(revision.read_text())
+            assert clip["checkpoint_sha256"] == manifest["models"]["recovery"]["sha256"]
+            assert clip["frames"] == 480 and clip["fps"] == 30
+            assert clip["simulation_seconds"] == 16 and clip["playback_speed"] == 1
+            assert len(clip["telemetry"]) == clip["frames"]
+            for i, sample in enumerate(clip["telemetry"]):
+                assert math.isclose(sample["time_s"], i / 30, abs_tol=1e-9)
+            for key in ("seed", "num_envs", "initial_state_sha256", "camera_eye_offset", "camera_target_offset"):
+                assert clip[key] == clips["rough_on_rough"][key]
         print(f"PASS: {len(index['assets'])} media hashes, capture timelines and identical rough-terrain resets")
     assert "<!-- RESULTS_TABLE -->" not in (ROOT / "README.md").read_text()
     print(f"PASS: {len(manifest['models'])} checkpoint hashes, 3072 transfer episodes, aggregate values, "

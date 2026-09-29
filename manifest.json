@@ -23,7 +23,9 @@
     "source/isaaclab/isaaclab/terrains/terrain_generator.py",
     "scripts/reinforcement_learning/rsl_rl/train.py",
     "scripts/reinforcement_learning/rsl_rl/play.py",
-    "scripts/reinforcement_learning/rsl_rl/evaluate_ant.py"
+    "scripts/reinforcement_learning/rsl_rl/evaluate_ant.py",
+    "source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/ant_recovery_env_cfg.py",
+    "source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/recovery_mdp.py"
   ],
   "models": {
     "flat": {
@@ -55,6 +57,22 @@
       "sha256": "68a833895a1c8202ef5006050b90955a00b38e794daa481b171dd5b5fe70de2c",
       "source_run": "ant_stable_validation/2026-09-27_17-49-16_stability_tuned",
       "source_checkpoint": "model_100.pt"
+    },
+    "control": {
+      "path": "artifacts/models/control.pt",
+      "sha256": "8c12057bf392c9702e0acba9f5d195f4637785efdbce2d4b6b31357b24df8be7",
+      "source_run": "ant_reward_control/2026-09-29_14-26-55_reward_control",
+      "source_checkpoint": "model_599.pt",
+      "warm_start_model": "rough",
+      "additional_iterations": 600
+    },
+    "recovery": {
+      "path": "artifacts/models/recovery.pt",
+      "sha256": "c77f2c0fab3b67be64cd56b7c4043c7fd2ad68f2e2465e012f963bc6d0f2fa67",
+      "source_run": "ant_recovery/2026-09-29_14-40-12_reward_recovery",
+      "source_checkpoint": "model_599.pt",
+      "warm_start_model": "rough",
+      "additional_iterations": 600
     }
   },
   "training_seed": 42,
@@ -65,5 +83,23 @@
     2002
   ],
   "evaluation_envs_per_seed": 512,
-  "episode_length_s": 16.0
+  "episode_length_s": 16.0,
+  "reward_revision": {
+    "training_seed": 42,
+    "additional_iterations_per_run": 600,
+    "transitions_per_run": 78643200,
+    "warm_start_model": "rough",
+    "development_terrain_seeds": [
+      3001
+    ],
+    "test_terrain_seeds": [
+      4001,
+      4002
+    ],
+    "models": [
+      "control",
+      "recovery"
+    ],
+    "plan": "docs/2026-09-29_reward_plan.md"
+  }
 }

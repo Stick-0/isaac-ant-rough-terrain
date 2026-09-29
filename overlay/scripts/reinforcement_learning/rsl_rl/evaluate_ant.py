@@ -22,6 +22,7 @@ parser.add_argument("--checkpoints", nargs="+", required=True, help="Local RSL-R
 parser.add_argument("--num_envs", type=int, default=512)
 parser.add_argument("--seed", type=int, default=1001)
 parser.add_argument("--output", type=Path, required=True)
+parser.add_argument("--episode_details", action="store_true", help="Save paired per-ant metrics and initial-state hashes.")
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
 if args.num_envs < 1:
@@ -34,6 +35,7 @@ app_launcher = AppLauncher(args)
 simulation_app = app_launcher.app
 
 import gymnasium as gym
+import hashlib
 import json
 import torch
 
@@ -54,6 +56,10 @@ def evaluate(env, runner, checkpoint):
     obs, _ = env.reset()
     base = env.unwrapped
     robot = base.scene["robot"]
+    initial_state = torch.cat(
+        (robot.data.root_state_w, robot.data.joint_pos, robot.data.joint_vel), dim=-1
+    )
+    initial_state_hash = hashlib.sha256(initial_state.cpu().numpy().tobytes()).hexdigest()
     start = robot.data.root_pos_w[:, :2].clone()
     active = torch.ones(env.num_envs, dtype=torch.bool, device=base.device)
     survived = torch.zeros_like(active)
@@ -100,6 +106,18 @@ def evaluate(env, runner, checkpoint):
         raise RuntimeError(f"Nonfinite evaluation metrics: {values}")
     result = {"checkpoint": str(Path(checkpoint).resolve()), **values}
     print(f"[EVAL] {json.dumps(result)}", flush=True)
+    if args.episode_details:
+        result["checkpoint_sha256"] = hashlib.sha256(Path(checkpoint).read_bytes()).hexdigest()
+        result["initial_state_sha256"] = initial_state_hash
+        result["episodes"] = {
+            "survived": survived.cpu().tolist(),
+            "failed": failed.cpu().tolist(),
+            "duration_s": (samples * base.step_dt).cpu().tolist(),
+            "forward_distance_m": forward_distance.cpu().tolist(),
+            "forward_speed_m_s": (speed_sum / samples).cpu().tolist(),
+            "body_sway_rms_rad_s": (sway_sum / samples).sqrt().cpu().tolist(),
+            "action_delta_rms": (action_delta_sum / samples).sqrt().cpu().tolist(),
+        }
     return result
 
 
@@ -121,6 +139,8 @@ def main():
             "distance_note": "Position sampled before terminal step; excludes at most one step.",
             "results": [],
         }
+        if args.episode_details:
+            report["evaluation_script_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
         args.output.parent.mkdir(parents=True, exist_ok=True)
         for checkpoint in args.checkpoints:
             report["results"].append(evaluate(env, runner, checkpoint))

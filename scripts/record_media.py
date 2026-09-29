@@ -11,7 +11,7 @@ from pathlib import Path
 from isaaclab.app import AppLauncher
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("--models", nargs="+", choices=["flat", "rough", "stable"], default=["flat", "rough"])
+parser.add_argument("--models", nargs="+", choices=["flat", "rough", "stable", "control", "recovery"], default=["flat", "rough"])
 parser.add_argument("--terrain", choices=["rough", "flat"], default="rough")
 parser.add_argument("--seed", type=int, default=2001)
 parser.add_argument("--num_envs", type=int, default=16)

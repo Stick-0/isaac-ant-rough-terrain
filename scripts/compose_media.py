@@ -37,9 +37,9 @@ def main():
          "[b][p]paletteuse=dither=bayer:bayer_scale=3", "-loop", "0",
          str(folder / "comparison_preview.gif")])
     assets = []
-    for path in sorted(folder.iterdir()):
+    for path in sorted(folder.rglob("*")):
         if path.suffix in {".mp4", ".png", ".jpg", ".gif"}:
-            assets.append({"file": path.name, "bytes": path.stat().st_size,
+            assets.append({"file": str(path.relative_to(folder)), "bytes": path.stat().st_size,
                            "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
     (folder / "index.json").write_text(json.dumps({
         "source": "Actual Isaac Sim RGB renders; no generated illustrations",

@@ -1,8 +1,8 @@
 diff --git a/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/__init__.py b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/__init__.py
-index bca53b5..7652eff 100644
+index bca53b5..2074f53 100644
 --- a/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/__init__.py
 +++ b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/__init__.py
-@@ -27,3 +27,13 @@ gym.register(
+@@ -27,3 +27,23 @@ gym.register(
          "sb3_cfg_entry_point": f"{agents.__name__}:sb3_ppo_cfg.yaml",
      },
  )
@@ -14,6 +14,16 @@ index bca53b5..7652eff 100644
 +    kwargs={
 +        "env_cfg_entry_point": f"{__name__}.ant_stable_env_cfg:AntStableEnvCfg",
 +        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AntStablePPORunnerCfg",
++    },
++)
++
++gym.register(
++    id="Isaac-Ant-Recovery-v0",
++    entry_point="isaaclab.envs:ManagerBasedRLEnv",
++    disable_env_checker=True,
++    kwargs={
++        "env_cfg_entry_point": f"{__name__}.ant_recovery_env_cfg:AntRecoveryEnvCfg",
++        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:AntRecoveryPPORunnerCfg",
 +    },
 +)
 diff --git a/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/ant_env_cfg.py b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/ant_env_cfg.py
@@ -363,10 +373,10 @@ index 0000000..9c3fc44
 +    """Terminate below the local ground clearance threshold, rather than world Z."""
 +    return base_height_above_ground(env).squeeze(-1) < minimum_height
 diff --git a/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/agents/rsl_rl_ppo_cfg.py b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/agents/rsl_rl_ppo_cfg.py
-index 5257b05..3106bf6 100644
+index 5257b05..d4782c4 100644
 --- a/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/agents/rsl_rl_ppo_cfg.py
 +++ b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/agents/rsl_rl_ppo_cfg.py
-@@ -36,3 +36,12 @@ class AntPPORunnerCfg(RslRlOnPolicyRunnerCfg):
+@@ -36,3 +36,20 @@ class AntPPORunnerCfg(RslRlOnPolicyRunnerCfg):
          desired_kl=0.01,
          max_grad_norm=1.0,
      )
@@ -379,6 +389,14 @@ index 5257b05..3106bf6 100644
 +    experiment_name = "ant_stable"
 +    max_iterations = 300
 +    algorithm = AntPPORunnerCfg().algorithm.replace(learning_rate=1.0e-4, schedule="fixed", entropy_coef=0.001)
++
++
++@configclass
++class AntRecoveryPPORunnerCfg(AntStablePPORunnerCfg):
++    """Same fine-tuning optimizer as the matched original-reward control."""
++
++    experiment_name = "ant_recovery"
++    max_iterations = 600
 diff --git a/source/isaaclab/isaaclab/terrains/terrain_generator.py b/source/isaaclab/isaaclab/terrains/terrain_generator.py
 index 456aa88..148e584 100644
 --- a/source/isaaclab/isaaclab/terrains/terrain_generator.py
@@ -524,10 +542,10 @@ index 11ef739..a251fc6 100644
                  break
 diff --git a/scripts/reinforcement_learning/rsl_rl/evaluate_ant.py b/scripts/reinforcement_learning/rsl_rl/evaluate_ant.py
 new file mode 100644
-index 0000000..2a1b699
+index 0000000..8f3fed6
 --- /dev/null
 +++ b/scripts/reinforcement_learning/rsl_rl/evaluate_ant.py
-@@ -0,0 +1,136 @@
+@@ -0,0 +1,156 @@
 +# Copyright (c) 2022-2025, The Isaac Lab Project Developers (https://github.com/isaac-sim/IsaacLab/blob/main/CONTRIBUTORS.md).
 +# All rights reserved.
 +#
@@ -552,6 +570,7 @@ index 0000000..2a1b699
 +parser.add_argument("--num_envs", type=int, default=512)
 +parser.add_argument("--seed", type=int, default=1001)
 +parser.add_argument("--output", type=Path, required=True)
++parser.add_argument("--episode_details", action="store_true", help="Save paired per-ant metrics and initial-state hashes.")
 +AppLauncher.add_app_launcher_args(parser)
 +args = parser.parse_args()
 +if args.num_envs < 1:
@@ -564,6 +583,7 @@ index 0000000..2a1b699
 +simulation_app = app_launcher.app
 +
 +import gymnasium as gym
++import hashlib
 +import json
 +import torch
 +
@@ -584,6 +604,10 @@ index 0000000..2a1b699
 +    obs, _ = env.reset()
 +    base = env.unwrapped
 +    robot = base.scene["robot"]
++    initial_state = torch.cat(
++        (robot.data.root_state_w, robot.data.joint_pos, robot.data.joint_vel), dim=-1
++    )
++    initial_state_hash = hashlib.sha256(initial_state.cpu().numpy().tobytes()).hexdigest()
 +    start = robot.data.root_pos_w[:, :2].clone()
 +    active = torch.ones(env.num_envs, dtype=torch.bool, device=base.device)
 +    survived = torch.zeros_like(active)
@@ -630,6 +654,18 @@ index 0000000..2a1b699
 +        raise RuntimeError(f"Nonfinite evaluation metrics: {values}")
 +    result = {"checkpoint": str(Path(checkpoint).resolve()), **values}
 +    print(f"[EVAL] {json.dumps(result)}", flush=True)
++    if args.episode_details:
++        result["checkpoint_sha256"] = hashlib.sha256(Path(checkpoint).read_bytes()).hexdigest()
++        result["initial_state_sha256"] = initial_state_hash
++        result["episodes"] = {
++            "survived": survived.cpu().tolist(),
++            "failed": failed.cpu().tolist(),
++            "duration_s": (samples * base.step_dt).cpu().tolist(),
++            "forward_distance_m": forward_distance.cpu().tolist(),
++            "forward_speed_m_s": (speed_sum / samples).cpu().tolist(),
++            "body_sway_rms_rad_s": (sway_sum / samples).sqrt().cpu().tolist(),
++            "action_delta_rms": (action_delta_sum / samples).sqrt().cpu().tolist(),
++        }
 +    return result
 +
 +
@@ -651,6 +687,8 @@ index 0000000..2a1b699
 +            "distance_note": "Position sampled before terminal step; excludes at most one step.",
 +            "results": [],
 +        }
++        if args.episode_details:
++            report["evaluation_script_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 +        args.output.parent.mkdir(parents=True, exist_ok=True)
 +        for checkpoint in args.checkpoints:
 +            report["results"].append(evaluate(env, runner, checkpoint))
@@ -664,3 +702,113 @@ index 0000000..2a1b699
 +        main()
 +    finally:
 +        simulation_app.close()
+diff --git a/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/ant_recovery_env_cfg.py b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/ant_recovery_env_cfg.py
+new file mode 100644
+index 0000000..79b8bbc
+--- /dev/null
++++ b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/ant_recovery_env_cfg.py
+@@ -0,0 +1,42 @@
++# Copyright (c) 2022-2025, The Isaac Lab Project Developers.
++# All rights reserved.
++# SPDX-License-Identifier: BSD-3-Clause
++
++"""Reward-only stability revision: same terrain, 60 observations and fall rules."""
++
++from isaaclab.managers import RewardTermCfg as RewTerm
++from isaaclab.utils import configclass
++
++import isaaclab_tasks.manager_based.classic.humanoid.mdp as mdp
++
++from . import recovery_mdp
++from .ant_env_cfg import AntEnvCfg, RewardsCfg
++
++
++@configclass
++class RecoveryRewardsCfg(RewardsCfg):
++    progress = RewTerm(
++        func=recovery_mdp.capped_target_speed,
++        weight=1.0,
++        params={"speed_cap": 4.5, "target_pos": (1000.0, 0.0, 0.0)},
++    )
++    # Keep the original alive, upright, heading, effort and joint-limit terms.
++    # A fall costs ten reward units once, independently of the control timestep.
++    fall = RewTerm(func=recovery_mdp.fall_event, weight=-10.0)
++    clearance_risk = RewTerm(
++        func=recovery_mdp.low_clearance_risk,
++        weight=-2.0,
++        params={"safe_height": 0.48, "fall_height": 0.31},
++    )
++    tilt_risk = RewTerm(
++        func=recovery_mdp.tilt_risk,
++        weight=-2.0,
++        params={"safe_up": 0.93, "critical_up": 0.5},
++    )
++    action_rate = RewTerm(func=mdp.action_rate_l2, weight=-0.01)
++    body_sway = RewTerm(func=mdp.ang_vel_xy_l2, weight=-0.025)
++
++
++@configclass
++class AntRecoveryEnvCfg(AntEnvCfg):
++    rewards: RecoveryRewardsCfg = RecoveryRewardsCfg()
+diff --git a/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/recovery_mdp.py b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/recovery_mdp.py
+new file mode 100644
+index 0000000..15c8572
+--- /dev/null
++++ b/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/recovery_mdp.py
+@@ -0,0 +1,56 @@
++# Copyright (c) 2022-2025, The Isaac Lab Project Developers.
++# All rights reserved.
++# SPDX-License-Identifier: BSD-3-Clause
++
++"""Risk-sensitive Ant rewards; all terms except the fall cost are rates per second."""
++
++from __future__ import annotations
++
++import torch
++from typing import TYPE_CHECKING
++
++from .terrain_mdp import base_height_above_ground
++
++if TYPE_CHECKING:
++    from isaaclab.envs import ManagerBasedRLEnv
++
++
++def capped_target_speed(
++    env: ManagerBasedRLEnv, speed_cap: float, target_pos: tuple[float, float, float]
++) -> torch.Tensor:
++    """Reward forward motion without paying extra for speed above the cap.
++
++    Use planar velocity projected toward the original target. This avoids the
++    large-potential subtraction in the original progress term. There is no
++    positive progress reward for standing still, and reverse motion is negative.
++    """
++    robot = env.scene["robot"].data
++    direction = robot.root_pos_w.new_tensor(target_pos[:2]) - robot.root_pos_w[:, :2]
++    direction = direction / direction.norm(dim=-1, keepdim=True).clamp_min(1.0e-6)
++    speed = (robot.root_lin_vel_w[:, :2] * direction).sum(dim=-1)
++    return speed.clamp(min=-speed_cap, max=speed_cap)
++
++
++def low_clearance_risk(env: ManagerBasedRLEnv, safe_height: float, fall_height: float) -> torch.Tensor:
++    """Quadratic warning before the unchanged local-ground fall threshold.
++
++    Heights above the safe threshold have no penalty: do not reward jumping or
++    force a precise torso height on uneven ground. Missing rays count as risk.
++    """
++    height = base_height_above_ground(env).squeeze(-1)
++    return ((safe_height - height) / (safe_height - fall_height)).clamp(0.0, 1.0).square()
++
++
++def tilt_risk(env: ManagerBasedRLEnv, safe_up: float, critical_up: float) -> torch.Tensor:
++    """Penalize large tilt, with a deadband for normal gait and terrain slopes."""
++    up = -env.scene["robot"].data.projected_gravity_b[:, 2]
++    return ((safe_up - up) / (safe_up - critical_up)).clamp(0.0, 1.0).square()
++
++
++def fall_event(env: ManagerBasedRLEnv) -> torch.Tensor:
++    """A one-off fall cost after RewardManager's multiplication by step_dt.
++
++    Pure time limits incur no cost. A real fall on the final step still does.
++    Termination is computed before rewards, and resets happen afterwards.
++    """
++    return env.termination_manager.terminated.float() / env.step_dt

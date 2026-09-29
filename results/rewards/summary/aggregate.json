@@ -1,0 +1,185 @@
+{
+  "models": {
+    "rough": {
+      "episodes": 1024,
+      "failed_episodes": 98,
+      "survival_rate": 0.904296875,
+      "observed_forward_distance_mean_m": 67.30410385131836,
+      "forward_speed_mean_m_s": 4.33915901184082,
+      "episode_duration_mean_s": 15.22998046875,
+      "roll_pitch_angular_speed_rms_rad_s": 2.063002347946167,
+      "action_delta_rms_per_joint": 0.3317630738019943
+    },
+    "stable": {
+      "episodes": 1024,
+      "failed_episodes": 118,
+      "survival_rate": 0.884765625,
+      "observed_forward_distance_mean_m": 67.42243957519531,
+      "forward_speed_mean_m_s": 4.368185043334961,
+      "episode_duration_mean_s": 15.102018356323242,
+      "roll_pitch_angular_speed_rms_rad_s": 2.067806124687195,
+      "action_delta_rms_per_joint": 0.32842394709587097
+    },
+    "control": {
+      "episodes": 1024,
+      "failed_episodes": 104,
+      "survival_rate": 0.8984375,
+      "observed_forward_distance_mean_m": 67.99970626831055,
+      "forward_speed_mean_m_s": 4.3989386558532715,
+      "episode_duration_mean_s": 15.197721004486084,
+      "roll_pitch_angular_speed_rms_rad_s": 2.049555540084839,
+      "action_delta_rms_per_joint": 0.3285299390554428
+    },
+    "recovery": {
+      "episodes": 1024,
+      "failed_episodes": 55,
+      "survival_rate": 0.9462890625,
+      "observed_forward_distance_mean_m": 65.56295013427734,
+      "forward_speed_mean_m_s": 4.158282518386841,
+      "episode_duration_mean_s": 15.533886909484863,
+      "roll_pitch_angular_speed_rms_rad_s": 1.7957513928413391,
+      "action_delta_rms_per_joint": 0.2995510697364807
+    }
+  },
+  "recovery_minus_baseline": {
+    "rough": {
+      "survived": {
+        "mean": 0.0419921875,
+        "paired_bootstrap_95_percent_interval": [
+          0.021484375,
+          0.0615234375
+        ]
+      },
+      "forward_distance_m": {
+        "mean": -1.741151703055948,
+        "paired_bootstrap_95_percent_interval": [
+          -2.5821653940482063,
+          -0.8729843610664832
+        ]
+      },
+      "forward_speed_m_s": {
+        "mean": -0.18087652066378723,
+        "paired_bootstrap_95_percent_interval": [
+          -0.20567699296694855,
+          -0.15545513735708028
+        ]
+      },
+      "duration_s": {
+        "mean": 0.3039062299649231,
+        "paired_bootstrap_95_percent_interval": [
+          0.1298091452830704,
+          0.4786653369010307
+        ]
+      },
+      "body_sway_rms_rad_s": {
+        "mean": -0.26725077151786536,
+        "paired_bootstrap_95_percent_interval": [
+          -0.27997742272273174,
+          -0.25361031615466345
+        ]
+      },
+      "action_delta_rms": {
+        "mean": -0.03221199808467645,
+        "paired_bootstrap_95_percent_interval": [
+          -0.03326340918574715,
+          -0.03109455129924754
+        ]
+      },
+      "recovery_only_survived": 81,
+      "baseline_only_survived": 38
+    },
+    "stable": {
+      "survived": {
+        "mean": 0.0615234375,
+        "paired_bootstrap_95_percent_interval": [
+          0.0390625,
+          0.0830078125
+        ]
+      },
+      "forward_distance_m": {
+        "mean": -1.8594850157387555,
+        "paired_bootstrap_95_percent_interval": [
+          -2.759935206454247,
+          -0.9647994697443212
+        ]
+      },
+      "forward_speed_m_s": {
+        "mean": -0.20990238158037755,
+        "paired_bootstrap_95_percent_interval": [
+          -0.2359466329368388,
+          -0.18312885996350592
+        ]
+      },
+      "duration_s": {
+        "mean": 0.4318684570607729,
+        "paired_bootstrap_95_percent_interval": [
+          0.24962848192080855,
+          0.6092333650405635
+        ]
+      },
+      "body_sway_rms_rad_s": {
+        "mean": -0.2720547349890694,
+        "paired_bootstrap_95_percent_interval": [
+          -0.2861106686468702,
+          -0.2573838465003064
+        ]
+      },
+      "action_delta_rms": {
+        "mean": -0.028872879112896044,
+        "paired_bootstrap_95_percent_interval": [
+          -0.029978117823338833,
+          -0.027788294373749522
+        ]
+      },
+      "recovery_only_survived": 102,
+      "baseline_only_survived": 39
+    },
+    "control": {
+      "survived": {
+        "mean": 0.0478515625,
+        "paired_bootstrap_95_percent_interval": [
+          0.0263671875,
+          0.0693359375
+        ]
+      },
+      "forward_distance_m": {
+        "mean": -2.4367540231905878,
+        "paired_bootstrap_95_percent_interval": [
+          -3.2863481736392712,
+          -1.5751742923865095
+        ]
+      },
+      "forward_speed_m_s": {
+        "mean": -0.2406561946677357,
+        "paired_bootstrap_95_percent_interval": [
+          -0.26630011116294555,
+          -0.21574143552770694
+        ]
+      },
+      "duration_s": {
+        "mean": 0.33616533991880715,
+        "paired_bootstrap_95_percent_interval": [
+          0.1662394060549559,
+          0.5075422883295686
+        ]
+      },
+      "body_sway_rms_rad_s": {
+        "mean": -0.2538041721563786,
+        "paired_bootstrap_95_percent_interval": [
+          -0.26568196517182513,
+          -0.24149146928684787
+        ]
+      },
+      "action_delta_rms": {
+        "mean": -0.028978861519135535,
+        "paired_bootstrap_95_percent_interval": [
+          -0.02998724711833347,
+          -0.027914746700844262
+        ]
+      },
+      "recovery_only_survived": 86,
+      "baseline_only_survived": 37
+    }
+  },
+  "interval_note": "Paired ant-ID bootstrap within each fixed map, 5000 replicates. Conditional on these maps and trained policies; not training-seed or map-population uncertainty."
+}

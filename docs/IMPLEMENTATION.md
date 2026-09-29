@@ -52,3 +52,7 @@ RayCaster의 환경별 reset buffer가 실제 모든 복제 환경을 포함하�
 - `evaluate_ant.py`: 체크포인트별로 같은 seed로 리셋하고, 각 개미의 첫 에피소드만 집계합니다.
 
 강한 패널티 실험은 action-rate `-0.05`, body-sway `-0.1`, 200회 추가 학습을 사용했습니다. 검증 지형에서 회귀했으므로 현재 기본 태스크 설정에는 반영하지 않았습니다.
+
+## 후속 보상 재설계
+
+`ant_recovery_env_cfg.py`와 `recovery_mdp.py`를 추가하고 `Isaac-Ant-Recovery-v0`로 등록했다. 4.5m/s 전진 보상 상한, 낙상 사건 -10, 몸높이·기울기 위험 보상을 포함한다. 기존 두 task의 설정은 보존했다. [수식과 의도·동일 예산 비교](REWARD_DESIGN.md).

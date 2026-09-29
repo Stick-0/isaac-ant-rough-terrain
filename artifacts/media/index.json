@@ -72,6 +72,36 @@
       "sha256": "96e73cacc5e481544d74c3202cc99688013713eabd3e6ec90e0315676522f16f"
     },
     {
+      "file": "reward_revision/recovery_on_rough.mp4",
+      "bytes": 19061981,
+      "sha256": "6d5197bcc0da98ea418a263c618b9137f971b4fcafc3a822808bcac07de3e219"
+    },
+    {
+      "file": "reward_revision/recovery_on_rough_00s.jpg",
+      "bytes": 124538,
+      "sha256": "af12bdea960d6ebd52ce11887fc096b04dbd9758b6c93f27914d098e0bb29fe3"
+    },
+    {
+      "file": "reward_revision/recovery_on_rough_03s.jpg",
+      "bytes": 119367,
+      "sha256": "638f66ae8a846c64c50e2c1a7a9cee57deb674fd441472b2be4ffd89fa036bcc"
+    },
+    {
+      "file": "reward_revision/recovery_on_rough_08s.jpg",
+      "bytes": 96772,
+      "sha256": "a0dd64c389c21f9f69d2abee41f7da4f4af712084833bb562e861dc2fc67f092"
+    },
+    {
+      "file": "reward_revision/rough_terrain_detail.png",
+      "bytes": 285115,
+      "sha256": "16b471bd8447d3d426eb74a7d6135d56d9d1672d2e6f991cf0310676e726a831"
+    },
+    {
+      "file": "reward_revision/rough_terrain_overview.png",
+      "bytes": 508949,
+      "sha256": "cf6f23ffa5c7020b0d75efcf6608ab4b0b381ddfece7bfb6de932a623a2dc134"
+    },
+    {
       "file": "rough_on_rough.mp4",
       "bytes": 19068177,
       "sha256": "3d14b8b543abc84224230b74364bc3b1856086c8a93f8eec74fe40776c9a3dea"
@@ -101,5 +131,6 @@
       "bytes": 509159,
       "sha256": "ae48cdc6901a36879b9b5c1dc5e94f9a5e74265cbe586e369d1b6ac628fd2b21"
     }
-  ]
+  ],
+  "reward_revision": "New reward policy, seed 2001, same 16-env reset and camera as rough_on_rough; qualitative demo."
 }

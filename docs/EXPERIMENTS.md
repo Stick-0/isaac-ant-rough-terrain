@@ -19,7 +19,7 @@
 
 평지/험지 두 학습은 actor·critic `[400, 200, 100]` ELU MLP, 60D 관측, 8D 토크 액션, PPO 초기 학습률 `5e-4`와 adaptive schedule, 1,000회 예산을 사용했습니다. 환경 dt는 1/120초, 제어 dt는 1/60초, 에피소드는 16초입니다. 실제 YAML과 모델 해시는 [`configs/runs`](../configs/runs), [`manifest.json`](../manifest.json)에 있습니다.
 
-추가 학습은 보상, 학습률 schedule, entropy 계수, 추가 transition 수가 함께 바뀝니다. **같은 예산으로 원래 보상을 계속 학습한 대조군이 없으므로, 차이를 새 패널티만의 인과효과로 분리할 수 없습니다.**
+1차 Stable 추가 학습은 보상, 학습률 schedule, entropy 계수, 추가 transition 수가 함께 바뀝니다. **이 1차 실험에는 같은 예산의 원래 보상 대조군이 없어, 차이를 새 패널티만의 인과효과로 분리할 수 없습니다.** 후속 보상 재설계에서는 control/recovery를 각각 같은 조건으로 600회 학습했습니다. [사전 실험 계획](2026-09-29_reward_plan.md), [보상 설계](REWARD_DESIGN.md)를 참고하세요.
 
 ## 평가 단계
 
