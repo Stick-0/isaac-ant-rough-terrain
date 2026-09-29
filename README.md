@@ -104,6 +104,6 @@ export ISAACLAB_ROOT="$(cd ../IsaacLab_RS_ant && pwd)"
 
 ## 참고
 
-[Isaac Lab](https://github.com/isaac-sim/IsaacLab)과 [기반 IsaacLab_RS](https://github.com/cailab-hy/IsaacLab_RS/tree/e83a5d2f11ca1b5f03b690e1978479e620c500e2)의 Ant 태스크를 사용했습니다. [Robust Ant PPO — Week 03](https://github.com/williewonker777/robotics-simulation-week03-ant-robust)는 실험 기록 구성 방식을 참고했으며 모델이나 결과를 가져오지 않았습니다.
+[Isaac Lab](https://github.com/isaac-sim/IsaacLab)과 [기반 IsaacLab_RS](https://github.com/cailab-hy/IsaacLab_RS/tree/e83a5d2f11ca1b5f03b690e1978479e620c500e2)의 Ant 태스크를 사용했습니다.
 
 코드는 [BSD-3-Clause](LICENSE)와 원 저작권 고지를 유지합니다. Isaac Sim 및 외부 로봇 에셋은 포함하지 않습니다. [공개 범위](docs/PUBLICATION.md)
