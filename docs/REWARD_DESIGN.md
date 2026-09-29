@@ -1,8 +1,6 @@
-# 넘어짐을 직접 다루는 보상 재설계
+# 추가 학습 모델의 리워드
 
-기존 안정성 추가 학습은 토크 변화와 roll/pitch 각속도만 감점했다. 하지만 험지에서 다리를 바꾸어 딛고 균형을 회복하는 동작도 이 수치를 키울 수 있다. 두 패널티를 단순히 크게 하는 실험은 오히려 완주율을 낮췄다. 원래 보상에는 넘어지는 순간의 직접 감점이 없고, 자세 항목도 수직 정렬 기준을 넘으면 고정 보너스를 주는 방식이다.
-
-새 `Isaac-Ant-Recovery-v0`는 보상만 바꾼 별도 태스크다. 기존 `Isaac-Ant-v0`와 `Isaac-Ant-Stable-v0`의 결과를 재현할 수 있도록 보존했다. 이름의 Recovery는 낙상 방지를 위한 위험 보상을 뜻하며, 쓰러진 뒤 스스로 일어나는 기술을 학습했다는 의미는 아니다. 넘어짐은 여전히 에피소드 종료다.
+추가 학습 모델 `recovery.pt`는 험지 모델 `rough.pt`의 가중치에서 시작해 낙상 방지와 안정적인 보행을 목표로 학습했다. 태스크 이름은 `Isaac-Ant-Recovery-v0`다. Recovery는 쓰러진 뒤 일어나는 기술을 뜻하지 않으며, 낙상은 여전히 에피소드 종료다.
 
 ![리워드 함수의 형태](../artifacts/figures/reward_design.png)
 
@@ -10,13 +8,13 @@
 
 ## 바꾼 항목
 
-| 항목 | 기존 안정성 보상 | 새 보상 | 의도 |
+| 항목 | 험지 모델 | 추가 학습 모델 | 의도 |
 | --- | --- | --- | --- |
 | 전진 | 목표까지 거리 감소율 | 목표 방향 평면 속도, ±4.5m/s로 제한 | 속도를 계속 높여 얻는 보상 제한 |
 | 넘어짐 | 직접 사건 감점 없음 | 넘어지는 순간 -10 | 실패를 직접 비용으로 연결 |
 | 지면 상대 몸높이 | 0.31m 미만일 때 종료 | 0.48m 아래부터 연속 위험 감점 추가 | 넘어지기 전에 학습 신호 제공 |
 | 큰 기울기 | upright 기준 통과 시 +0.1 | 기존 보너스 + 연속 위험 감점 | 임계값 통과 여부만으로 표현하지 못하는 위험 반영 |
-| 액션 변화 / 몸체 각속도 | -0.01 / -0.025 | 유지 | 강한 감점으로 회복 움직임까지 과하게 제한하지 않음 |
+| 액션 변화 / 몸체 각속도 | 별도 패널티 없음 | -0.01 / -0.025 추가 | 작은 패널티로 제어 변화와 회전 억제 |
 
 유지한 항목: alive +0.5, upright +0.1, heading +0.5, action L2 -0.005, power proxy -0.05, joint limit -0.1. 지형·센서·60차원 관측·8개 토크 액션·16초 제한·0.31m 낙상 기준·시작 배치는 바꾸지 않았다.
 
@@ -39,22 +37,11 @@
 
 전진을 기존 큰 음수 거리 potential의 차분에서 직접 속도 투영으로 바꿨다. 이는 같은 목표 방향을 보상하면서 float32의 큰 수 차분을 피한다. 하지만 원래 식과 스텝별로 완전히 동일한 것은 아니다. 이번 비교는 보상 구성 전체의 효과이며, 개별 항목의 단독 인과효과를 분리한 ablation은 아니다.
 
-## 학습과 평가
+## 코드·학습·결과
 
-[`2026-09-29_reward_plan.md`](2026-09-29_reward_plan.md)에 학습 전에 고정한 조건과 평가 seed를 기록했다. 기존 보상으로 같은 600회만큼 추가 학습한 control을 두어, 더 오래 학습한 효과를 구분할 수 있도록 했다. optimizer 설정과 초기 actor/critic/std도 동일하다. 실제 저장된 YAML을 비교해 보상·로그 경로·실험 이름을 제외한 설정이 모두 같음을 확인했고, [`training_comparison.json`](../results/rewards/training_comparison.json)에 기록했다.
+- [보상 설정](../overlay/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/ant_recovery_env_cfg.py), [보상 함수](../overlay/source/isaaclab_tasks/isaaclab_tasks/manager_based/classic/ant/recovery_mdp.py).
+- [세 모델 학습·재생·평가 명령](REPRODUCE.md).
+- [험지 모델 대비 추가 학습 결과](RESULTS.md).
+- [동일 600회 대조군 검증과 중간 실험](archive/README.md).
 
-```bash
-# 공개 저장소 루트, Isaac Lab용 환경을 활성화한 뒤 실행
-export ISAACLAB_ROOT=/path/to/patched/IsaacLab_RS
-bash scripts/train_rewards.sh
-
-# 공개된 최종 모델로 동일 첫 에피소드 평가
-bash scripts/evaluate_rewards.sh 4001 4002
-python scripts/analyze_rewards.py --results-dir results/reproduced_rewards \
-  --output-dir results/reproduced_rewards_summary
-
-# 시뮬레이터 없이 보상 함수 경계 조건 확인 (torch 필요)
-python scripts/test_reward_terms.py
-```
-
-학습을 다시 실행한 모델은 `logs/rsl_rl/ant_reward_control/`와 `logs/rsl_rl/ant_recovery/`에 저장된다. `evaluate_rewards.sh`의 기본 입력은 공개 체크포인트이므로 재학습 결과를 평가하려면 `evaluate_ant.py --checkpoints ...`에 해당 실행의 `model_599.pt`를 지정해야 한다.
+시뮬레이터 없이 보상 함수 경계 조건을 검사하려면 torch가 있는 환경에서 `python scripts/test_reward_terms.py`를 실행한다.

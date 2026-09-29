@@ -1,143 +1,100 @@
-# Ant: 평지 보행에서 울퉁불퉁한 지형으로
+# Ant: 평지 모델 → 험지 모델 → 추가 학습 모델
 
-Isaac Lab의 원본 `Isaac-Ant-v0`를 출발점으로, 연속적인 랜덤 지형을 구현하고 실제 충돌·리셋 문제를 수정한 뒤 험지 보행을 학습한 프로젝트입니다. 원본 평지 학습 정책이 새 지형에서도 걸을 수 있는지, 험지 학습과 안정성 보상 추가가 무엇을 바꾸는지 실험했습니다.
+Isaac Lab의 Ant가 평지에서 걷는 것부터 시작해, 랜덤 험지에 적응하고 안정성을 높이는 과정을 세 모델로 정리했습니다.
 
-1차 결과: 새 지형 2종에서 평지 학습 모델의 16초 완주율은 17.48%, 험지 학습 모델은 91.41%였습니다. 안정성 보상 추가 학습은 액션 변화를 소폭 줄였지만, 지형별 완주율이 오르기도 내리기도 해 일관된 우위를 확인하지 못했습니다.
-
-이 결과는 학습 시드 1개, 동일한 지형 생성 분포의 새 시드 2개에서 측정했습니다. 모든 미지 환경에 대한 강건성이나 개별 보상 항목의 단독 효과를 주장하지 않습니다.
-
-## 후속 실험: 안정성 리워드 재설계
-
-첫 추가 학습의 개선 폭이 작아, 넘어짐 감점·몸높이와 기울기 위험 보상·전진 보상 상한을 추가했습니다. 같은 초기 모델에서 각각 600회 추가 학습한 대조군으로 비교했습니다.
-
-| Model | Completion | Falls / 1024 | Distance | Speed | Action RMS | Body RMS |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Rough baseline | 90.43% | 98 | 67.30 m | 4.34 m/s | 0.3318 | 2.0630 rad/s |
-| Old stability +300 | 88.48% | 118 | 67.42 m | 4.37 m/s | 0.3284 | 2.0678 rad/s |
-| Original reward +600 | 89.84% | 104 | 68.00 m | 4.40 m/s | 0.3285 | 2.0496 rad/s |
-| New reward +600 | 94.63% | 55 | 65.56 m | 4.16 m/s | 0.2996 | 1.7958 rad/s |
-
-새 지형 4001/4002에서 모델별 1,024개 첫 에피소드를 평가했습니다. 같은 학습량 대비 낙상은 47.1%, 몸체 각속도 RMS는 12.4% 줄었고, 평균 속도는 5.5%, 이동거리는 3.6% 낮아졌습니다. 안정성을 우선하는 모델은 `recovery.pt`입니다. 기존 결과와 모델도 보존했습니다.
-
-![새 보상과 동일 예산 대조군 비교](artifacts/figures/reward_comparison.png)
-
-[리워드 설계·수식](docs/REWARD_DESIGN.md) · [결과·한계·개체별 원자료](docs/REWARD_RESULTS.md) · [새 모델 보행 영상](artifacts/media/reward_revision/recovery_on_rough.mp4)
-
-## 실제 지형과 보행 영상
-
-![생성된 랜덤 험지와 개미들의 격자 배치](artifacts/media/rough_terrain_overview.png)
-
-실제 Isaac Sim에서 촬영한 험지의 일부입니다. 아래는 같은 험지에서 평지 학습 모델(왼쪽)과 험지 학습 모델(오른쪽)을 비교한 영상입니다.
-
-[![두 모델의 첫 6초 비교 미리보기](artifacts/media/comparison_preview.gif)](artifacts/media/comparison.mp4)
-
-GIF는 앞 6초의 실시간 미리보기입니다. [전체 16초 비교 영상](artifacts/media/comparison.mp4)에는 넘어짐과 자동 리셋을 포함했습니다.
-
-- [평지 학습 모델이 원본 평지에서 걷는 영상](artifacts/media/flat_on_flat.mp4)
-- [평지 학습 모델이 험지에서 걷는 영상](artifacts/media/flat_on_rough.mp4)
-- [험지 학습 모델이 같은 험지에서 걷는 영상](artifacts/media/rough_on_rough.mp4)
-
-촬영은 seed 2001, 16개 환경 중 개미 0을 따라가는 데모입니다. 기존 512개 환경 정량 평가와는 별개입니다. [사진 더 보기·촬영 조건·재현 명령](docs/MEDIA.md)
-
-![새 지형에서 세 모델 비교](artifacts/figures/transfer_comparison.png)
-
-## 원본에서 무엇을 바꿨나
-
-| 항목 | 원본 평지 태스크 | 험지 태스크 | 안정성 추가 학습 |
+| 구분 | 평지 모델 | 험지 모델 | 추가 학습 모델 |
 | --- | --- | --- | --- |
-| 바닥 | 무한 평면 | 랜덤 요철·파도·정/역경사 | 험지와 동일 |
-| 높이 관측 | 몸통의 절대 Z | 몸통과 바로 아래 지면의 높이 차 | 험지와 동일 |
-| 낙상 종료 | 몸통 높이 0.31m 미만 | 지면 상대 높이 0.31m 미만 | 험지와 동일 |
-| 개미 배치 | 5m 간격 격자 | XY 격자 유지, 지형에 맞춰 시작 Z 보정 | 험지와 동일 |
-| 관측 / 액션 | 60D / 8D 토크 제어 | 60D / 8D 유지 | 60D / 8D 유지 |
-| 충돌 지형 | 평면 collider | 공간별 36개 triangle collider | 험지와 동일 |
-| 보상 | 전진·생존·자세·에너지 등 | 기존 보상 유지 | 액션 변화·몸통 각속도 패널티 추가 |
-| 학습량 | 1,000회 | 1,000회 | 험지 모델에서 300회 추가 |
+| 목적 | 원본 환경의 기준 보행 | 울퉁불퉁한 지형에 적응 | 험지에서 낙상과 몸체 흔들림 감소 |
+| 학습 지형 | 원본 평면 | 랜덤 요철·파도·경사 | 험지 모델과 동일 |
+| 핵심 변경 | 원본 태스크 | 지형·높이 관측·충돌·낙상 판정 | 안정성을 고려한 리워드 |
+| 학습량 | 1,000회 | 1,000회 | 험지 모델에서 600회 추가 |
+| 체크포인트 | [flat.pt](artifacts/models/flat.pt) | [rough.pt](artifacts/models/rough.pt) | [recovery.pt](artifacts/models/recovery.pt) |
 
-현재 지형은 6m 타일 × 120행 × 120열 = 720m × 720m입니다. 테두리 폭은 0이고 타일을 연결했습니다. 최초 요청에서 검토했던 100m 크기가 아닌, 실제 평가에 사용한 최종 설정을 공개합니다. [구현 상세](docs/IMPLEMENTATION.md)
+여기서 ‘추가 학습 모델’은 최종 `recovery.pt`를 뜻합니다. 관측 60차원, 액션 8차원, PPO 네트워크 구조는 세 모델이 같습니다. 평지·험지 모델은 각각 학습했으며, 추가 학습 모델은 험지 모델의 가중치에서 이어 학습했습니다.
 
-## 1차 새 지형 평가 결과
+## 1. 평지 모델
 
-모델별 512마리 × 지형 시드 2개 = 1,024개 첫 에피소드를 평가했습니다. 전체 비교는 3,072개 에피소드입니다. 자동 리셋 이후의 다음 에피소드는 집계하지 않습니다.
+원본 `Isaac-Ant-v0`의 평면 환경에서 보행을 학습한 기준 모델입니다. 전진·생존·자세 보상과 에너지 등의 패널티를 사용합니다.
 
-| Model | Episodes | Completion | Forward distance | Action change RMS | Body angular speed RMS |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Flat-trained | 1024 | 17.48% | 15.61 m | 0.4037 | 1.5785 rad/s |
-| Rough-trained | 1024 | 91.41% | 67.98 m | 0.3318 | 2.0592 rad/s |
-| Stability fine-tuned | 1024 | 91.50% | 68.65 m | 0.3274 | 2.0518 rad/s |
+평지에서는 걷지만, 새 험지에 적용했을 때 16초 생존율은 17.48%, 평균 전진 거리는 15.61m였습니다. 이 험지 평가에는 공통 지면 상대 높이 관측을 적용했습니다.
 
-평지 모델에도 동일한 지면 상대 높이 관측 변환을 적용해 험지에서 비교했습니다. 원본 평지 모델을 아무 수정 없이 절대 Z 관측으로 실행한 결과와는 다릅니다. 험지 모델 두 개는 같은 장면·관측·종료 조건에서 평가했습니다.
+[![평지 모델의 원본 평지 보행](artifacts/media/flat_on_flat_03s.jpg)](artifacts/media/flat_on_flat.mp4)
 
-추가 학습 모델은 시드 2001에서 완주율이 91.41%→89.45%로 내려갔고, 시드 2002에서는 91.41%→93.55%로 올랐습니다. 평균 수치만으로 안정성이 개선됐다고 결론짓지 않았습니다. 이 1차 평가에서는 험지 학습 모델 `rough.pt`를 기본으로 두었습니다. 위의 후속 실험에서는 안정성 우선 대안으로 `recovery.pt`를 추가했고, 이전 모델과 실패 실험도 보존했습니다.
+[평지 보행 영상](artifacts/media/flat_on_flat.mp4) · [험지에 적용한 영상](artifacts/media/flat_on_rough.mp4) · [원본 설정](reference/original/ant_env_cfg.py)
 
-[전체 수치와 해석](docs/RESULTS.md) · [실험 설계와 한계](docs/EXPERIMENTS.md) · [실패·수정 과정](docs/DEVLOG.md)
+## 2. 험지 모델
 
-## 코드와 실행
+평면을 연속적인 랜덤 요철·파도·경사 지형으로 바꾸고 같은 1,000회 예산으로 학습했습니다. 원본 보상은 유지하면서 다음을 수정했습니다.
 
-이 저장소는 Isaac Sim 전체를 포함하지 않는 IsaacLab_RS 변경 코드와 재현 자료 묶음입니다. 기반 저장소의 커밋을 고정하고 패치를 적용합니다.
+- 원본의 5m 간격 격자 배치를 유지하고, 시작 높이를 지형에 맞췄습니다.
+- 몸통 높이 관측과 낙상 판정을 바로 아래 지면 기준으로 바꿨습니다.
+- 타일 경계를 연결하고 충돌 메시를 공간별로 나눠 정상적으로 밟고 걷도록 했습니다.
+
+![실제로 생성한 랜덤 험지](artifacts/media/rough_terrain_overview.png)
+
+지형은 720×720m이고 테두리는 없습니다. 평지 모델과 같은 새 지형(seed 2001/2002)에서 생존율은 17.48% → 91.41%, 평균 거리는 15.61m → 67.98m로 늘었습니다.
+
+[험지 보행 영상](artifacts/media/rough_on_rough.mp4) · [평지 모델과 같은 험지에서 비교한 영상](artifacts/media/comparison.mp4) · [환경 구현](docs/IMPLEMENTATION.md)
+
+## 3. 추가 학습 모델
+
+험지 모델에서 리워드를 개선해 600회 더 학습했습니다. 낙상과 위험 자세를 직접 감점하고, 과속으로 얻는 추가 보상을 제한했습니다.
+
+- 넘어지는 순간 -10점.
+- 지면 상대 몸높이 0.48m 아래와 큰 기울기에 연속 감점.
+- 전진 보상은 4.5m/s에서 상한 적용. 액션 변화와 몸체 각속도에도 작은 패널티 적용.
+
+지형·관측·액션·낙상 종료 기준은 험지 모델과 같습니다. 별도의 새 지형(seed 4001/4002)에서 두 모델을 비교했습니다.
+
+| 지표 | 험지 모델 | 추가 학습 모델 |
+| --- | ---: | ---: |
+| 16초 생존율 | 90.43% | 94.63% |
+| 낙상 / 1,024회 | 98 | 55 |
+| 몸체 각속도 RMS | 2.063 rad/s | 1.796 rad/s |
+| 평균 전진 속도 | 4.34m/s | 4.16m/s |
+| 평균 전진 거리 | 67.30m | 65.56m |
+
+낙상은 43.9%, 몸체 각속도 RMS는 13.0% 줄었습니다. 대신 속도는 4.2%, 거리는 2.6% 낮아져, 조금 느리지만 더 안정적으로 걷는 모델입니다.
+
+[![추가 학습 모델의 험지 보행](artifacts/media/reward_revision/recovery_on_rough_08s.jpg)](artifacts/media/reward_revision/recovery_on_rough.mp4)
+
+[보행 영상](artifacts/media/reward_revision/recovery_on_rough.mp4) · [리워드 설계와 코드](docs/REWARD_DESIGN.md) · [단계별 평가 결과](docs/RESULTS.md)
+
+두 평가 묶음은 지형 seed가 다르므로 수치를 섞지 않았습니다. 각 비교는 모델별 512마리 × 2개 지형의 첫 16초 에피소드 기준입니다. 영상은 별도의 16환경 데모이며, 학습 seed는 하나입니다. [실험 조건과 해석 범위](docs/EXPERIMENTS.md)
+
+## 실행
+
+[설치·학습·평가 명령](docs/REPRODUCE.md)에 따라 고정한 IsaacLab_RS 원본에 패치를 적용합니다. 패치와 실행 환경을 준비한 뒤 공개 저장소 루트에서:
 
 ```bash
-git clone https://github.com/Stick-0/isaac-ant-rough-terrain.git
-git clone https://github.com/cailab-hy/IsaacLab_RS.git IsaacLab_RS_ant
-git -C IsaacLab_RS_ant checkout e83a5d2f11ca1b5f03b690e1978479e620c500e2
-python isaac-ant-rough-terrain/scripts/apply_overlay.py IsaacLab_RS_ant --check
-python isaac-ant-rough-terrain/scripts/apply_overlay.py IsaacLab_RS_ant
-```
-
-Isaac Sim 5.1 / Isaac Lab 2.3 실행 환경을 준비한 뒤:
-
-```bash
-# 이 저장소 루트에서 실행. Isaac Lab용 Python 환경을 먼저 활성화한다.
 export ISAACLAB_ROOT="$(cd ../IsaacLab_RS_ant && pwd)"
 "$ISAACLAB_ROOT/isaaclab.sh" -p \
   "$ISAACLAB_ROOT/scripts/reinforcement_learning/rsl_rl/play.py" \
-  --task Isaac-Ant-v0 --num_envs 64 \
-  --checkpoint "$PWD/artifacts/models/rough.pt" --diagnostics
-
-# 세 모델을 같은 새 지형에서 평가
-bash scripts/evaluate.sh 2001 2002
+  --task Isaac-Ant-Recovery-v0 --num_envs 64 \
+  --checkpoint "$PWD/artifacts/models/recovery.pt" --diagnostics
 ```
 
-GPU 없이 표와 그래프를 다시 만들 수 있습니다.
+험지 모델은 같은 명령에서 태스크를 `Isaac-Ant-v0`, 체크포인트를 `rough.pt`로 바꿉니다. 평지 모델의 원본 평지 실행은 [별도 원본 checkout 안내](docs/REPRODUCE.md)를 따릅니다.
 
-```bash
-python -m pip install -r requirements-analysis.txt
-python scripts/analyze.py
-python scripts/verify_package.py
-```
+## 코드와 자료
 
-[설치·학습·추가 학습·평가 명령 전체](docs/REPRODUCE.md)
+| 자료 | 내용 |
+| --- | --- |
+| [원본 설정](reference/original) | 평지 모델의 출발점 |
+| [변경 코드](overlay) · [패치](patches/isaaclab.patch) | 험지 환경과 추가 학습 리워드 구현 |
+| [학습 설정](configs/runs) · [체크포인트](artifacts/models) | 세 대표 모델과 검증용 모델 |
+| [결과](docs/RESULTS.md) · [영상](docs/MEDIA.md) | 단계별 수치와 실제 시뮬레이션 |
+| [재현 방법](docs/REPRODUCE.md) · [모델 해시](manifest.json) | 실행 조건과 파일 검증 |
 
-## 학습 기록
+<details>
+<summary>중간 실험·대조군·개발 기록</summary>
 
-![학습 중 에피소드 길이](artifacts/figures/training_history.png)
+초기 안정성 보상, 강한 패널티 실패, 동일 예산 대조군과 디버깅 과정은 [실험 기록 모음](docs/archive/README.md)에 묶었습니다. 원시 측정값과 모델은 검증·재현을 위해 보존했습니다.
 
-평지 학습과 험지 학습은 환경 난이도가 다릅니다. 그래프의 높은 값만으로 정책의 우열을 비교하지 않고, 위의 동일 험지 평가로 비교했습니다. 추가 학습의 반복 횟수는 새 옵티마이저로 시작한 이후의 값입니다.
+</details>
 
-초기 로그에는 무작위 episode counter 초기화와 새 집계 버퍼의 영향이 포함됩니다. 추가 학습 곡선이 낮은 값에서 시작하는 것이 정책 가중치를 무작위로 초기화했다는 뜻은 아닙니다.
+## 참고
 
-## 저장소 구성
+[Isaac Lab](https://github.com/isaac-sim/IsaacLab)과 [기반 IsaacLab_RS](https://github.com/cailab-hy/IsaacLab_RS/tree/e83a5d2f11ca1b5f03b690e1978479e620c500e2)의 Ant 태스크를 사용했습니다. [Robust Ant PPO — Week 03](https://github.com/williewonker777/robotics-simulation-week03-ant-robust)는 실험 기록 구성 방식을 참고했으며 모델이나 결과를 가져오지 않았습니다.
 
-```text
-overlay/                  실제 수정·추가한 Isaac Lab 코드 12개
-reference/original/       기반 커밋의 원본 Ant 설정
-patches/isaaclab.patch    고정한 원본에 적용할 전체 변경
-configs/runs/             각 학습 실행의 환경·PPO 설정
-artifacts/models/         평지·험지·추가 학습·실패 실험 체크포인트
-artifacts/figures/        원시 결과에서 생성한 그래프
-artifacts/media/          실제 지형 사진·보행 영상·촬영 기록
-results/transfer/         새 지형 2001/2002에서 세 모델의 측정값
-results/stability/        이전 1001/1002 실험과 강한 패널티 실패 기록
-results/rewards/          동일 예산 보상 비교·개체별 결과·모델/상태 해시
-results/training/         TensorBoard에서 추출한 학습 곡선 CSV
-scripts/                  패치 적용·평가·집계·무결성 검증
-docs/                     설계·구현·결과·재현·개발 기록
-manifest.json             원본 커밋·환경 버전·모델 SHA-256
-```
-
-## 참고와 출처
-
-- [Isaac Lab](https://github.com/isaac-sim/IsaacLab), [기반 IsaacLab_RS](https://github.com/cailab-hy/IsaacLab_RS/tree/e83a5d2f11ca1b5f03b690e1978479e620c500e2): Ant 태스크와 시뮬레이터 코드의 출처.
-- [Robust Ant PPO — Week 03](https://github.com/williewonker777/robotics-simulation-week03-ant-robust): 실험 조건·원시 결과·실패·재현 방법을 함께 공개하는 구성 방식을 참고했습니다. 해당 프로젝트의 모델·성과를 이 프로젝트의 결과로 사용하지 않았으며, 동일 실험도 아닙니다.
-
-코드는 [BSD-3-Clause](LICENSE) 라이선스와 원 저작권 고지를 유지합니다. Isaac Sim 및 외부 로봇 에셋은 배포하지 않습니다. [공개 범위와 검증](docs/PUBLICATION.md)
+코드는 [BSD-3-Clause](LICENSE)와 원 저작권 고지를 유지합니다. Isaac Sim 및 외부 로봇 에셋은 포함하지 않습니다. [공개 범위](docs/PUBLICATION.md)
