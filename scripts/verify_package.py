@@ -88,6 +88,22 @@ def main():
             count_delta = comparison["recovery_only_survived"] - comparison["baseline_only_survived"]
             assert math.isclose(count_delta / 1024, expected, abs_tol=1e-12)
         print("PASS: 4096 reward-test episodes, paired resets and episode-level aggregate consistency")
+    from analyze_models import load_results, summarize
+
+    protocol, common_reports = load_results()
+    common_summary = summarize(protocol, common_reports)
+    saved_summary = json.loads((ROOT / "results/models/summary/aggregate.json").read_text())
+    assert saved_summary == common_summary, "Common-evaluation aggregate is stale"
+    primary = manifest["primary_evaluation"]
+    assert primary["terrain_seeds"] == protocol["terrain_seeds"]
+    assert primary["models"] == protocol["models"]
+    assert primary["first_episodes_per_model"] == protocol["first_episodes_per_model"]
+    for relative, expected in primary["report_sha256"].items():
+        assert hashlib.sha256((ROOT / relative).read_bytes()).hexdigest() == expected, relative
+    assert len(primary["report_sha256"]) == len(protocol["terrain_seeds"])
+    assert len({r["results"][0]["initial_state_sha256"] for r in common_reports}) == len(common_reports)
+    print("PASS: 7680 common-evaluation episodes across all three models, five matched maps, "
+          "paired initial states, report hashes and aggregates")
     python_files = list((ROOT / "scripts").glob("*.py")) + list((ROOT / "overlay").rglob("*.py"))
     for path in python_files:
         ast.parse(path.read_text(), filename=str(path))

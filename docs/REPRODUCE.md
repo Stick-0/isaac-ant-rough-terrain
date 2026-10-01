@@ -88,19 +88,31 @@ export ISAACLAB_ORIGINAL_ROOT=/path/to/original/IsaacLab_RS
 
 ## 세 모델을 같은 새 지형에서 평가
 
+본문에 공개한 수치는 아래 명령으로 세 모델을 함께 평가한 seed 5001~5005의 결과다. 저장된 모델을 다시 학습할 필요는 없다.
+
 ```bash
-"$ISAACLAB_ROOT/isaaclab.sh" -p \
-  "$ISAACLAB_ROOT/scripts/reinforcement_learning/rsl_rl/evaluate_ant.py" \
-  --headless --seed 5001 --num_envs 512 --episode_details \
-  --checkpoints "$ANT_REPORT_ROOT/artifacts/models/flat.pt" \
-    "$ANT_REPORT_ROOT/artifacts/models/rough.pt" \
-    "$ANT_REPORT_ROOT/artifacts/models/recovery.pt" \
-  --output "$ANT_REPORT_ROOT/results/reproduced_models/seed_5001.json"
+# 기본값: 5001 5002 5003 5004 5005, 각 512환경, 첫 16초 에피소드
+bash scripts/evaluate_models.sh
 ```
 
-위 명령은 세 대표 모델을 함께 평가하는 예시이며, seed 5001의 측정 결과를 이미 공개했다는 의미는 아니다. 재학습한 모델을 평가하려면 체크포인트 경로를 해당 실행의 파일로 바꾼다.
+체크포인트는 `flat.pt`, `rough.pt`, `recovery.pt`이며 모델마다 동일 seed로 리셋한다. 실행 스크립트가 초기 상태 해시의 일치를 확인하고 로컬 절대 경로를 저장소 상대 경로로 바꾼다. 원래 공개된 측정은 `results/models/`, 재실행 결과는 기본적으로 `results/reproduced_models/`에 저장된다.
 
-공개된 본문 수치는 2001/2002의 평지·험지 비교와 4001/4002의 험지·추가 학습 비교다. 기존 평가 전체를 재현·집계하는 명령은 [기록 모음](archive/README.md)에 있다. 모든 정책을 공통 험지 환경에서 평가하고 자동 리셋 이후 에피소드는 제외한다.
+분석 환경에서는 `requirements-analysis.txt`를 설치하고 다음을 실행한다.
+
+```bash
+# 새로 재실행한 결과 검증·집계
+python scripts/analyze_models.py \
+  --results-dir results/reproduced_models \
+  --output-dir results/reproduced_models/summary
+
+# 공개된 원자료의 집계와 메인 그래프 재생성
+python scripts/analyze_models.py
+python scripts/plot_survival.py
+```
+
+`plot_survival.py`는 공개된 다섯 시드의 원자료를 사용한다. 한글 글꼴 NanumGothic이 없으면 영문으로 표시한다. 개체별 기록, 모델·평가기 해시, 다섯 시드의 누락 여부를 검사하며 모든 시드가 있어야 최종 집계를 만든다. 평가 기준은 [고정한 프로토콜](../results/models/protocol.json)에 있다.
+
+다른 시드를 추가로 평가하려면 `bash scripts/evaluate_models.sh 6001 6002`처럼 지정할 수 있다. 이 결과는 이번 본문 집계에 섞지 않는다. 과거 평가와 대조 실험을 재현하는 명령은 [기록 모음](archive/README.md)에 있다.
 
 ## 공개 파일 검증
 

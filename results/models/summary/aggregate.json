@@ -1,0 +1,67 @@
+{
+  "terrain_seeds": [
+    5001,
+    5002,
+    5003,
+    5004,
+    5005
+  ],
+  "models": {
+    "flat": {
+      "episodes": 2560,
+      "survived_episodes": 414,
+      "failed_episodes": 2146,
+      "survival_rate": 0.16171875,
+      "episode_duration_mean_s": 7.585475521942135,
+      "observed_forward_distance_mean_m": 15.27778636389412,
+      "forward_speed_mean_m_s": 1.8285657706529492,
+      "roll_pitch_angular_speed_rms_rad_s": 1.5890555263031274,
+      "action_delta_rms_per_joint": 0.40406912441249004
+    },
+    "rough": {
+      "episodes": 2560,
+      "survived_episodes": 2317,
+      "failed_episodes": 243,
+      "survival_rate": 0.905078125,
+      "episode_duration_mean_s": 15.243971395678818,
+      "observed_forward_distance_mean_m": 67.50190654024482,
+      "forward_speed_mean_m_s": 4.347030755463311,
+      "roll_pitch_angular_speed_rms_rad_s": 2.06153351678513,
+      "action_delta_rms_per_joint": 0.3311174463829957
+    },
+    "recovery": {
+      "episodes": 2560,
+      "survived_episodes": 2432,
+      "failed_episodes": 128,
+      "survival_rate": 0.95,
+      "episode_duration_mean_s": 15.570553404162638,
+      "observed_forward_distance_mean_m": 65.76573227876797,
+      "forward_speed_mean_m_s": 4.16514832644898,
+      "roll_pitch_angular_speed_rms_rad_s": 1.7877031837124377,
+      "action_delta_rms_per_joint": 0.3001886710524559
+    }
+  },
+  "comparisons": {
+    "rough_vs_flat": {
+      "survival_difference_percentage_points": 74.3359375,
+      "fall_reduction_percent": 88.67660764212488,
+      "speed_change_percent": 137.72898001426884,
+      "distance_change_percent": 341.83041268185013,
+      "body_sway_change_percent": 29.733258697460574,
+      "action_delta_change_percent": -18.05425696298002,
+      "candidate_only_survived": 1940,
+      "baseline_only_survived": 37
+    },
+    "recovery_vs_rough": {
+      "survival_difference_percentage_points": 4.4921875,
+      "fall_reduction_percent": 47.325102880658434,
+      "speed_change_percent": -4.184061241934911,
+      "distance_change_percent": -2.57203736970264,
+      "body_sway_change_percent": -13.282846523869207,
+      "action_delta_change_percent": -9.340726581578307,
+      "candidate_only_survived": 207,
+      "baseline_only_survived": 92
+    }
+  },
+  "note": "All three models share all five maps and matched initial states. First episodes only; one training seed."
+}

@@ -78,10 +78,6 @@
   "training_seed": 42,
   "training_envs": 4096,
   "rollout_steps_per_env": 32,
-  "new_evaluation_seeds": [
-    2001,
-    2002
-  ],
   "evaluation_envs_per_seed": 512,
   "episode_length_s": 16.0,
   "reward_revision": {
@@ -101,5 +97,42 @@
       "recovery"
     ],
     "plan": "docs/2026-09-29_reward_plan.md"
+  },
+  "historical_transfer_seeds": [
+    2001,
+    2002
+  ],
+  "primary_evaluation": {
+    "date": "2026-10-01",
+    "models": [
+      "flat",
+      "rough",
+      "recovery"
+    ],
+    "terrain_seeds": [
+      5001,
+      5002,
+      5003,
+      5004,
+      5005
+    ],
+    "envs_per_seed": 512,
+    "first_episodes_per_model": 2560,
+    "episode_length_s": 16.0,
+    "protocol": "results/models/protocol.json",
+    "raw_reports": "results/models",
+    "aggregate": "results/models/summary/aggregate.json",
+    "comparison": "Same terrain instance and matched initial states for all three models within every seed.",
+    "supersedes_main_results": [
+      "results/transfer",
+      "results/rewards/test"
+    ],
+    "report_sha256": {
+      "results/models/seed_5001.json": "9cd6a34c43e666c64b8504ea4aec87e9b3c7bcff8dc21bf18d98de31866d8f9c",
+      "results/models/seed_5002.json": "34c25794fa35d454d0c457cc1f237b6bdf32b06f27bf859205ec77abacc19722",
+      "results/models/seed_5003.json": "650c6eee0bccc0fb919b1011c366b19dec6e0834681feb6d99239e7b2e4b6613",
+      "results/models/seed_5004.json": "14a680607a357eb6a8da385ce67aabc7ab271ba406dfd0294cdda1b91170c246",
+      "results/models/seed_5005.json": "3149428d4f56d6d2dc2e07787503cb82c12b23c9f138375a3c58e4bb779f7d53"
+    }
   }
 }

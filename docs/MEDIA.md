@@ -22,7 +22,7 @@ seed 2001로 생성한 720×720m 지형의 일부다. 요철·파도·경사 타
 
 [![추가 학습 모델의 험지 보행](../artifacts/media/reward_revision/recovery_on_rough_08s.jpg)](../artifacts/media/reward_revision/recovery_on_rough.mp4)
 
-[`recovery.pt`의 16초 보행 영상](../artifacts/media/reward_revision/recovery_on_rough.mp4)이다. 기존 험지 영상과 지형·초기 상태 해시·카메라 조건이 같다. 촬영한 개미 0은 이 데모에서 넘어지지 않았다. 모델 전체의 성능은 [512환경 정량 평가](RESULTS.md)로 판단한다.
+[`recovery.pt`의 16초 보행 영상](../artifacts/media/reward_revision/recovery_on_rough.mp4)이다. 기존 험지 영상과 지형·초기 상태 해시·카메라 조건이 같다. 촬영한 개미 0은 이 데모에서 넘어지지 않았다. 모델 전체의 성능은 [동일한 5개 지형·모델별 2,560개 에피소드의 정량 평가](RESULTS.md)로 판단한다.
 
 ## 공통 촬영 조건
 

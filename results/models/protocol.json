@@ -1,0 +1,33 @@
+{
+  "declared_at_utc": "2026-10-01T01:36:50.097574+00:00",
+  "purpose": "Replace the main results with one common three-model evaluation; no retraining or checkpoint selection.",
+  "models": [
+    "flat",
+    "rough",
+    "recovery"
+  ],
+  "checkpoint_sha256": {
+    "flat": "e0e0d2573346d47b94c2f09b86d93578dc705d2c28a43dead72abbdd551c76c3",
+    "rough": "b6f44bc7fc4f8e73ccbaab0e063f9bbd3cf0ab1260f89ceef8ea5663ca25a920",
+    "recovery": "c77f2c0fab3b67be64cd56b7c4043c7fd2ad68f2e2465e012f963bc6d0f2fa67"
+  },
+  "terrain_seeds": [
+    5001,
+    5002,
+    5003,
+    5004,
+    5005
+  ],
+  "num_envs_per_seed": 512,
+  "first_episodes_per_model": 2560,
+  "episode_length_s": 16.0,
+  "task": "Isaac-Ant-v0",
+  "policy": "deterministic actor mean; flat, rough, recovery in this fixed order",
+  "initial_states": "Reseed and reset before each policy; require equal root/joint initial-state SHA-256 within each seed.",
+  "terrain": "One shared generated terrain instance per seed; identical environment settings for all policies.",
+  "observation": "Common 60D ground-relative-height adapter, including the flat-trained policy.",
+  "selection_rule": "Use all five declared seeds and all first episodes. No seed, checkpoint or hyperparameter selection after evaluation.",
+  "evaluation_script_sha256": "11e89b29ea4c051512484b3f06afd8590cd818bd9c51fd8d189af067c24e08f0",
+  "report_directory": "results/models",
+  "historical_results": "results/transfer and results/rewards remain archived; excluded from this aggregate."
+}
